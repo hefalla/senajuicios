@@ -508,6 +508,7 @@
         column-gap: 16px;
         row-gap: 0;
       }
+      .sub{display: none;}
       .field-row{grid-template-columns: 1fr;}
       .tab-btn {flex-direction: column;}
       .log-card { display: none; }
