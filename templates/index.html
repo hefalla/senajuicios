@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Revisión de Juicios — Sofía Plus SENA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Variables ────────────────────────────────────────────── */
+    :root {
+      --verde:       #007832;
+      --verde-claro: #39A935;
+      --verde-bg:    #EAF4EA;
+      --verde-borde: #B8DDB8;
+      --texto:       #1A2E1A;
+      --texto-suave: #5A7A5A;
+      --fondo:       #F4F7F4;
+      --blanco:      #FFFFFF;
+      --borde:       #D4E4D4;
+      --rojo:        #C0392B;
+      --rojo-bg:     #FDECEA;
+      --amarillo:    #D97706;
+      --amarillo-bg: #FEF3C7;
+      --sombra:      0 2px 12px rgba(0,120,50,.10);
+      --sombra-lg:   0 8px 32px rgba(0,120,50,.15);
+      --radio:       10px;
+      --radio-sm:    6px;
+    }
+
+    /* ── Reset ────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--fondo);
+      color: var(--texto);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    header {
+      background: var(--verde);
+      padding: 0 28px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo-mark {
+      width: 34px; height: 34px;
+      background: var(--verde-claro);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'IBM Plex Serif', serif;
+      font-weight: 600; font-size: 14px;
+      color: #fff; letter-spacing: -.5px;
+      flex-shrink: 0;
+    }
+    header h1 {
+      font-size: 1rem; font-weight: 500; color: #fff;
+      letter-spacing: .01em;
+    }
+    header .sub {
+      font-size: .75rem; color: rgba(255,255,255,.65);
+      margin-left: 4px;
+    }
+    .header-spacer { flex: 1; }
+    .carpeta-badge {
+      font-size: .72rem; color: rgba(255,255,255,.7);
+      background: rgba(255,255,255,.12);
+      padding: 4px 10px; border-radius: 20px;
+      white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis; max-width: 300px;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      padding: 28px;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ── Tabs ─────────────────────────────────────────────────── */
+    .tabs-wrapper { display: flex; flex-direction: column; gap: 0; }
+
+    .tab-nav {
+      display: flex;
+      gap: 2px;
+      background: var(--borde);
+      padding: 3px;
+      border-radius: var(--radio) var(--radio) 0 0;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 9px 14px;
+      border: none;
+      background: transparent;
+      border-radius: 7px;
+      font: 500 .82rem 'IBM Plex Sans', sans-serif;
+      color: var(--texto-suave);
+      cursor: pointer;
+      transition: all .18s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .tab-btn:hover { background: rgba(255,255,255,.7); color: var(--verde); }
+    .tab-btn.active {
+      background: var(--blanco);
+      color: var(--verde);
+      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    }
+    .tab-icon { font-size: 1rem; }
+
+    .tab-content {
+      display: none;
+      background: var(--blanco);
+      border-radius: 0 0 var(--radio) var(--radio);
+      padding: 24px;
+      box-shadow: var(--sombra);
+    }
+    .tab-content.active { display: block; }
+
+    /* ── Form elements ────────────────────────────────────────── */
+    .form-section { margin-bottom: 20px; }
+    .section-label {
+      font-size: .72rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .06em;
+      color: var(--verde);
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--verde-borde);
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .field-row.single { grid-template-columns: 1fr; }
+    .field-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    label {
+      font-size: .78rem; font-weight: 500; color: var(--texto-suave);
+    }
+    input[type="text"],
+    input[type="password"],
+    select {
+      padding: 8px 11px;
+      border: 1.5px solid var(--borde);
+      border-radius: var(--radio-sm);
+      font: 400 .88rem 'IBM Plex Sans', sans-serif;
+      color: var(--texto);
+      background: var(--blanco);
+      transition: border-color .15s, box-shadow .15s;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: var(--verde-claro);
+      box-shadow: 0 0 0 3px rgba(57,169,53,.15);
+    }
+    input::placeholder { color: #B0C4B0; }
+
+    .hint {
+      font-size: .73rem; color: var(--texto-suave);
+      font-style: italic;
+      margin-top: -6px; margin-bottom: 4px;
+    }
+
+    /* ── Radios / Checkboxes ──────────────────────────────────── */
+    .radio-group, .check-group {
+      display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    }
+    .radio-group label, .check-group label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: .83rem; color: var(--texto); font-weight: 400; cursor: pointer;
+    }
+    input[type="radio"], input[type="checkbox"] {
+      accent-color: var(--verde);
+      width: 15px; height: 15px; cursor: pointer;
+    }
+
+    /* ── Action bar ───────────────────────────────────────────── */
+    .action-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 20px; padding-top: 16px;
+      border-top: 1px solid var(--borde);
+    }
+    .btn-run {
+      padding: 10px 28px;
+      background: var(--verde);
+      color: #fff;
+      border: none;
+      border-radius: var(--radio-sm);
+      font: 600 .9rem 'IBM Plex Sans', sans-serif;
+      cursor: pointer;
+      transition: background .15s, transform .1s, box-shadow .15s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-run:hover {
+      background: var(--verde-claro);
+      box-shadow: 0 3px 12px rgba(57,169,53,.35);
+    }
+    .btn-run:active { transform: scale(.97); }
+    .btn-run:disabled {
+      background: #9ab89a; cursor: not-allowed;
+      box-shadow: none; transform: none;
+    }
+    .btn-run .btn-icon { font-size: 1rem; }
+
+    /* ── Progress panel ───────────────────────────────────────── */
+    .panel-right {
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    .progress-card {
+      background: var(--blanco);
+      border-radius: var(--radio);
+      box-shadow: var(--sombra);
+      overflow: hidden;
+    }
+    .progress-header {
+      background: var(--verde);
+      padding: 14px 18px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .progress-header h2 {
+      font-size: .88rem; font-weight: 600; color: #fff; flex: 1;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 22px; height: 22px;
+      border: 2.5px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+    .spinner.hidden { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Steps */
+    .steps-list {
+      padding: 16px 18px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .step {
+      display: flex; align-items: flex-start; gap: 10px;
+      transition: opacity .2s;
+    }
+    .step-icon {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 700;
+      flex-shrink: 0; margin-top: 1px;
+      transition: all .25s;
+    }
+    .step.pendiente .step-icon  { background: #E8EEE8; color: #9AB49A; }
+    .step.en-curso .step-icon   { background: var(--verde); color: #fff; animation: pulse-icon .8s ease-in-out infinite alternate; }
+    .step.listo .step-icon      { background: var(--verde-claro); color: #fff; }
+    .step.error .step-icon      { background: var(--rojo); color: #fff; }
+
+    @keyframes pulse-icon {
+      from { box-shadow: 0 0 0 0 rgba(57,169,53,.5); }
+      to   { box-shadow: 0 0 0 6px rgba(57,169,53,0); }
+    }
+
+    .step-label {
+      font-size: .83rem; color: var(--texto-suave);
+      line-height: 1.4; padding-top: 2px;
+      transition: color .2s, font-weight .2s;
+    }
+    .step.en-curso .step-label  { color: var(--verde); font-weight: 600; }
+    .step.listo .step-label     { color: var(--texto); }
+    .step.error .step-label     { color: var(--rojo); }
+
+    /* ── Result banner ────────────────────────────────────────── */
+    .result-banner {
+      display: none;
+      padding: 14px 18px;
+      border-top: 1px solid var(--borde);
+      gap: 10px; align-items: flex-start;
+    }
+    .result-banner.show { display: flex; }
+    .result-banner.exito { background: var(--verde-bg); }
+    .result-banner.error { background: var(--rojo-bg); }
+    .result-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .result-msg  { font-size: .83rem; flex: 1; line-height: 1.45; }
+    .result-banner.exito .result-msg { color: var(--verde); }
+    .result-banner.error .result-msg { color: var(--rojo); }
+
+    .btn-download {
+      display: none;
+      width: calc(100% - 36px);
+      margin: 0 18px 16px;
+      padding: 12px;
+      background: var(--verde);
+      color: #fff;
+      border: 3px solid var(--verde-claro);
+      border-radius: var(--radio-sm);
+      font: 700 .9rem 'IBM Plex Sans', sans-serif;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background .15s, transform .1s;
+      box-shadow: 0 4px 14px rgba(0,120,50,.3);
+      animation: pulse-dl 1.5s ease-in-out 3;
+    }
+    @keyframes pulse-dl {
+      0%, 100% { box-shadow: 0 4px 14px rgba(0,120,50,.3); }
+      50%       { box-shadow: 0 4px 22px rgba(0,120,50,.6); }
+    }
+    .btn-download:hover { background: var(--verde-claro); transform: scale(1.02); }
+    .btn-download.show { display: block; }
+
+    /* ── Log panel ────────────────────────────────────────────── */
+    .log-card {
+      background: #0D1F0D;
+      border-radius: var(--radio);
+      overflow: hidden;
+      box-shadow: var(--sombra);
+    }
+    .log-header {
+      padding: 10px 14px;
+      background: #162616;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .log-header span {
+      font: 500 .75rem 'IBM Plex Mono', monospace;
+      color: rgba(255,255,255,.5); letter-spacing: .04em;
+    }
+    .btn-log-clear {
+      font: 400 .72rem 'IBM Plex Mono', monospace;
+      color: rgba(255,255,255,.3); background: none; border: none;
+      cursor: pointer; transition: color .15s;
+    }
+    .btn-log-clear:hover { color: rgba(255,255,255,.7); }
+
+    .log-body {
+      height: 220px;
+      overflow-y: auto;
+      padding: 10px 14px;
+      font: 400 .75rem 'IBM Plex Mono', monospace;
+      line-height: 1.6;
+    }
+    .log-body::-webkit-scrollbar { width: 4px; }
+    .log-body::-webkit-scrollbar-track { background: transparent; }
+    .log-body::-webkit-scrollbar-thumb { background: #2A4A2A; border-radius: 2px; }
+
+    .log-line { display: block; color: rgba(255,255,255,.5); }
+    .log-line.ok     { color: #6BCB77; }
+    .log-line.err    { color: #FF6B6B; }
+    .log-line.info   { color: #74B9FF; }
+    .log-line.titulo { color: #FFEAA7; font-weight: 500; }
+
+    /* ── Estado pill ──────────────────────────────────────────── */
+    .status-pill {
+      font-size: .72rem; font-weight: 600; letter-spacing: .04em;
+      padding: 3px 9px; border-radius: 20px;
+      transition: all .2s;
+    }
+    .status-pill.idle    { background: rgba(255,255,255,.15); color: rgba(255,255,255,.6); }
+    .status-pill.running { background: #FFEAA7; color: #7D5A00; }
+    .status-pill.done    { background: #6BCB77; color: #004412; }
+    .status-pill.error   { background: #FF6B6B; color: #5C0000; }
+
+    /* ── Empty state ──────────────────────────────────────────── */
+    .empty-state {
+      padding: 28px 18px;
+      text-align: center;
+      color: rgba(255,255,255,.2);
+      font-size: .8rem; font-style: italic;
+    }
+
+    /* ── Folder config modal ──────────────────────────────────── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.55); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--blanco); border-radius: var(--radio);
+      box-shadow: var(--sombra-lg); width: 520px; max-width: 94vw;
+      overflow: hidden; animation: modal-in .18s ease;
+    }
+    @keyframes modal-in { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-head {
+      background: var(--verde); padding: 14px 20px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .modal-head h3 { color: #fff; font-size: .95rem; font-weight: 600; flex: 1; }
+    .btn-modal-close {
+      background: none; border: none; color: rgba(255,255,255,.7);
+      font-size: 1.3rem; cursor: pointer; line-height: 1; padding: 2px 6px;
+      border-radius: 4px; transition: background .15s;
+    }
+    .btn-modal-close:hover { background: rgba(255,255,255,.2); color: #fff; }
+
+    .modal-body { padding: 20px; }
+
+    .carpeta-actual-display {
+      font: 500 .82rem 'IBM Plex Mono', monospace;
+      background: var(--fondo); border: 1.5px solid var(--borde);
+      border-radius: var(--radio-sm); padding: 9px 12px;
+      color: var(--texto); word-break: break-all; margin-bottom: 14px;
+    }
+
+    .explorer {
+      border: 1.5px solid var(--borde); border-radius: var(--radio-sm);
+      overflow: hidden; margin-bottom: 14px;
+    }
+    .explorer-bar {
+      background: var(--fondo); padding: 8px 12px;
+      font: 400 .75rem 'IBM Plex Mono', monospace;
+      color: var(--texto-suave); border-bottom: 1px solid var(--borde);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .explorer-list {
+      max-height: 220px; overflow-y: auto;
+    }
+    .explorer-list::-webkit-scrollbar { width: 5px; }
+    .explorer-list::-webkit-scrollbar-thumb { background: var(--borde); border-radius: 3px; }
+    .explorer-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 12px; cursor: pointer;
+      font-size: .83rem; color: var(--texto);
+      border-bottom: 1px solid var(--fondo);
+      transition: background .1s;
+    }
+    .explorer-item:hover { background: var(--verde-bg); }
+    .explorer-item.selected { background: var(--verde-bg); font-weight: 600; color: var(--verde); }
+    .explorer-icon { font-size: 1rem; flex-shrink: 0; }
+    .explorer-loading {
+      padding: 20px; text-align: center;
+      color: var(--texto-suave); font-size: .82rem; font-style: italic;
+    }
+
+    .modal-input-row {
+      display: flex; gap: 8px; margin-bottom: 14px;
+    }
+    .modal-input-row input {
+      flex: 1; padding: 8px 11px;
+      border: 1.5px solid var(--borde); border-radius: var(--radio-sm);
+      font: 400 .85rem 'IBM Plex Mono', monospace;
+    }
+    .modal-input-row input:focus {
+      outline: none; border-color: var(--verde-claro);
+      box-shadow: 0 0 0 3px rgba(57,169,53,.15);
+    }
+    .btn-go {
+      padding: 8px 14px; background: var(--verde); color: #fff;
+      border: none; border-radius: var(--radio-sm);
+      font: 600 .82rem 'IBM Plex Sans', sans-serif; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-go:hover { background: var(--verde-claro); }
+
+    .modal-footer {
+      padding: 14px 20px; border-top: 1px solid var(--borde);
+      display: flex; justify-content: flex-end; gap: 10px;
+    }
+    .btn-secondary {
+      padding: 8px 18px; background: var(--fondo); color: var(--texto-suave);
+      border: 1.5px solid var(--borde); border-radius: var(--radio-sm);
+      font: 500 .85rem 'IBM Plex Sans', sans-serif; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-secondary:hover { background: var(--borde); }
+    .btn-primary {
+      padding: 8px 20px; background: var(--verde); color: #fff;
+      border: none; border-radius: var(--radio-sm);
+      font: 600 .85rem 'IBM Plex Sans', sans-serif; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-primary:hover { background: var(--verde-claro); }
+    .btn-primary:disabled { background: #9ab89a; cursor: not-allowed; }
+
+    .modal-msg {
+      font-size: .8rem; margin-bottom: 10px; padding: 8px 12px;
+      border-radius: var(--radio-sm); display: none;
+    }
+    .modal-msg.ok  { display: block; background: var(--verde-bg); color: var(--verde); }
+    .modal-msg.err { display: block; background: var(--rojo-bg); color: var(--rojo); }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      main {
+        grid-template-columns: 1fr;
+        padding: 16px;
+        gap: 16px;
+      }
+      .panel-right { order: -1; }
+      .carpeta-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────── -->
+<header>
+  <div class="logo-mark">SE</div>
+  <div>
+    <h1>Revisión de Juicios de Evaluación
+      <span class="sub">· Herramienta para instructores</span>
+    </h1>
+  </div>
+  <div class="header-spacer"></div>
+  <div class="carpeta-badge" id="carpetaBadge" style="cursor:pointer" onclick="abrirModalCarpeta()" title="Cambiar carpeta de trabajo">📂 Cargando carpeta…</div>
+  <button onclick="abrirModalCarpeta()" title="Configurar carpeta de descarga"
+          style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 10px;
+                 border-radius:6px;cursor:pointer;font-size:.8rem;margin-left:6px;
+                 transition:background .15s;"
+          onmouseover="this.style.background='rgba(255,255,255,.25)'"
+          onmouseout="this.style.background='rgba(255,255,255,.15)'">
+    ⚙ Carpeta
+  </button>
+</header>
+
+<!-- ── Main ───────────────────────────────────────────────────── -->
+<main>
+
+  <!-- ─────── Panel izquierdo: formularios ─────────────────────── -->
+  <div class="tabs-wrapper">
+
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab(0)">
+        <span class="tab-icon">📥</span> Descargar
+      </button>
+      <button class="tab-btn" onclick="switchTab(1)">
+        <span class="tab-icon">📄</span> Consultar
+      </button>
+      <button class="tab-btn" onclick="switchTab(2)">
+        <span class="tab-icon">⚡</span> Completo
+      </button>
+    </div>
+
+    <!-- Tab 1: Descargar ---------------------------------------- -->
+    <div class="tab-content active" id="tab0">
+
+      <div class="form-section">
+        <div class="section-label">Credenciales Sofía Plus</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Número de documento</label>
+            <input type="text" id="d_usuario" placeholder="Ej: 1234567890" autocomplete="username">
+          </div>
+          <div class="field">
+            <label>Contraseña</label>
+            <input type="password" id="d_contrasena" placeholder="••••••••" autocomplete="current-password">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-label">Ficha</div>
+        <div class="field-row single">
+          <div class="field">
+            <label>Número de ficha</label>
+            <input type="text" id="d_ficha" placeholder="Ej: 2994282">
+          </div>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <span style="font-size:.78rem; color:var(--texto-suave);">
+          Descarga el reporte Excel de Sofía Plus
+        </span>
+        <button class="btn-run" id="btn_descargar" onclick="iniciarDescargar()">
+          <span class="btn-icon">📥</span> Descargar reporte
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab 2: Consultar ---------------------------------------- -->
+    <div class="tab-content" id="tab1">
+
+      <div class="form-section">
+        <div class="section-label">Ficha</div>
+        <div class="field-row single">
+          <div class="field">
+            <label>Número de ficha</label>
+            <input type="text" id="c_ficha" placeholder="Ej: 2994282">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-label">Filtrar aprendiz (opcional)</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Nombres</label>
+            <input type="text" id="c_nombre" placeholder="Ej: Santiago">
+          </div>
+          <div class="field">
+            <label>Apellidos</label>
+            <input type="text" id="c_apellido" placeholder="Ej: Gañan">
+          </div>
+        </div>
+        <div class="hint">Dejar vacío para generar informe de toda la ficha</div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-label">Tipo de informe</div>
+        <div class="radio-group">
+          <label><input type="radio" name="c_tipo" value="consolidado" checked> Consolidado (un DOCX)</label>
+          <label><input type="radio" name="c_tipo" value="independiente"> Independiente (un DOCX por aprendiz)</label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="check-group">
+          <label>
+            <input type="checkbox" id="c_activos">
+            Solo aprendices activos (En Formación / Condicionado)
+          </label>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <span style="font-size:.78rem; color:var(--texto-suave);">
+          Requiere reporte ya descargado
+        </span>
+        <button class="btn-run" id="btn_consultar" onclick="iniciarConsultar()">
+          <span class="btn-icon">📄</span> Generar informe
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab 3: Completo ----------------------------------------- -->
+    <div class="tab-content" id="tab2">
+
+      <div class="form-section">
+        <div class="section-label">Credenciales Sofía Plus</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Número de documento</label>
+            <input type="text" id="f_usuario" placeholder="Ej: 1234567890" autocomplete="username">
+          </div>
+          <div class="field">
+            <label>Contraseña</label>
+            <input type="password" id="f_contrasena" placeholder="••••••••" autocomplete="current-password">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-label">Ficha y aprendiz</div>
+        <div class="field-row single">
+          <div class="field">
+            <label>Número de ficha</label>
+            <input type="text" id="f_ficha" placeholder="Ej: 2994282">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Nombres (opcional)</label>
+            <input type="text" id="f_nombre" placeholder="Ej: Santiago">
+          </div>
+          <div class="field">
+            <label>Apellidos (opcional)</label>
+            <input type="text" id="f_apellido" placeholder="Ej: Gañan">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-label">Tipo de informe</div>
+        <div class="radio-group">
+          <label><input type="radio" name="f_tipo" value="consolidado" checked> Consolidado</label>
+          <label><input type="radio" name="f_tipo" value="independiente"> Independiente</label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="check-group">
+          <label>
+            <input type="checkbox" id="f_activos">
+            Solo aprendices activos
+          </label>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <span style="font-size:.78rem; color:var(--texto-suave);">
+          Descarga y genera el informe en un solo paso
+        </span>
+        <button class="btn-run" id="btn_completo" onclick="iniciarCompleto()">
+          <span class="btn-icon">⚡</span> Ejecutar proceso completo
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /tabs-wrapper -->
+
+  <!-- ─────── Panel derecho: progreso ──────────────────────────── -->
+  <div class="panel-right">
+
+    <!-- Tarjeta de progreso -->
+    <div class="progress-card">
+      <div class="progress-header">
+        <h2 id="progressTitle">En espera</h2>
+        <span class="status-pill idle" id="statusPill">IDLE</span>
+        <div class="spinner hidden" id="spinner"></div>
+      </div>
+
+      <div class="steps-list" id="stepsList">
+        <div class="empty-state">
+          Inicia un proceso para ver el progreso aquí
+        </div>
+      </div>
+
+      <!-- Resultado -->
+      <div class="result-banner" id="resultBanner">
+        <span class="result-icon" id="resultIcon"></span>
+        <span class="result-msg" id="resultMsg"></span>
+      </div>
+
+      <!-- Botón descargar -->
+      <a class="btn-download" id="btnDownload" href="#" download>
+        ⬇ Descargar informe
+      </a>
+    </div>
+
+    <!-- Log terminal -->
+    <div class="log-card">
+      <div class="log-header">
+        <span>▌ REGISTRO DE ACTIVIDAD</span>
+        <button class="btn-log-clear" onclick="clearLog()">limpiar</button>
+      </div>
+      <div class="log-body" id="logBody">
+        <span class="log-line" style="color:rgba(255,255,255,.2); font-style:italic;">
+          El registro aparecerá aquí durante la ejecución…
+        </span>
+      </div>
+    </div>
+
+  </div><!-- /panel-right -->
+
+</main>
+
+<script>
+/* ── Estado global ─────────────────────────────────────────────── */
+let currentTaskId = null;
+let currentEventSource = null;
+let currentPasos = [];
+let ocupado = false;
+
+/* ── Tabs ──────────────────────────────────────────────────────── */
+function switchTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) =>
+    b.classList.toggle('active', i === idx));
+  document.querySelectorAll('.tab-content').forEach((t, i) =>
+    t.classList.toggle('active', i === idx));
+}
+
+/* ── Log ───────────────────────────────────────────────────────── */
+function addLog(level, msg) {
+  const body = document.getElementById('logBody');
+  // Limpiar placeholder la primera vez
+  if (body.querySelector('.log-line[style]')) body.innerHTML = '';
+
+  const span = document.createElement('span');
+  span.className = `log-line ${level || ''}`;
+  const prefix = { ok: '✔ ', err: '✘ ', info: '→ ', titulo: '══ ' }[level] || '';
+  span.textContent = prefix + msg;
+  body.appendChild(span);
+  body.appendChild(document.createElement('br'));
+  body.scrollTop = body.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById('logBody').innerHTML =
+    '<span class="log-line" style="color:rgba(255,255,255,.2); font-style:italic;">Log limpiado.</span>';
+}
+
+/* ── Steps ─────────────────────────────────────────────────────── */
+function renderSteps(pasos) {
+  const list = document.getElementById('stepsList');
+  list.innerHTML = '';
+  pasos.forEach((label, i) => {
+    const div = document.createElement('div');
+    div.className = 'step pendiente';
+    div.id = `step_${i}`;
+    div.innerHTML = `
+      <div class="step-icon">○</div>
+      <div class="step-label">${label}</div>`;
+    list.appendChild(div);
+  });
+}
+
+function updateStep(index, estado) {
+  if (index < 0) {
+    // error genérico: marca el último paso en curso como error
+    document.querySelectorAll('.step.en-curso').forEach(s => {
+      s.className = 'step error';
+      s.querySelector('.step-icon').textContent = '✘';
+    });
+    return;
+  }
+  const el = document.getElementById(`step_${index}`);
+  if (!el) return;
+  const icons = { 'en_curso': '◉', 'listo': '✔', 'error': '✘' };
+  el.className = `step ${estado.replace('_', '-')}`;
+  el.querySelector('.step-icon').textContent = icons[estado] || '○';
+}
+
+/* ── Status pill ───────────────────────────────────────────────── */
+function setStatus(estado, texto) {
+  const pill = document.getElementById('statusPill');
+  pill.className = `status-pill ${estado}`;
+  pill.textContent = texto;
+}
+
+function setSpinner(on) {
+  document.getElementById('spinner').classList.toggle('hidden', !on);
+}
+
+/* ── Botones y bloqueo ─────────────────────────────────────────── */
+const allBtns = ['btn_descargar', 'btn_consultar', 'btn_completo'];
+
+function lockUI() {
+  ocupado = true;
+  allBtns.forEach(id => {
+    const b = document.getElementById(id);
+    b.disabled = true;
+  });
+}
+
+function unlockUI() {
+  ocupado = false;
+  allBtns.forEach(id => {
+    document.getElementById(id).disabled = false;
+  });
+}
+
+/* ── SSE listener ──────────────────────────────────────────────── */
+function conectarSSE(taskId) {
+  if (currentEventSource) currentEventSource.close();
+
+  const es = new EventSource(`/api/stream/${taskId}`);
+  currentEventSource = es;
+
+  es.onmessage = (e) => {
+    const ev = JSON.parse(e.data);
+
+    if (ev.type === '_eof') {
+      es.close();
+      unlockUI();
+      setSpinner(false);
+      return;
+    }
+
+    if (ev.type === 'log') {
+      addLog(ev.level, ev.msg);
+      return;
+    }
+
+    if (ev.type === 'paso') {
+      updateStep(ev.index, ev.estado);
+      return;
+    }
+
+    if (ev.type === 'archivo') {
+      const btn = document.getElementById('btnDownload');
+      btn.href = `/api/descargar-archivo/${taskId}`;
+      btn.download = ev.nombre;
+      const icono = ev.es_zip ? '📦' : '📄';
+      const tipo  = ev.es_zip ? '(.zip con todos los informes)' : '(.docx)';
+      btn.textContent = `⬇ ${icono} ${ev.nombre}  ${tipo}`;
+      btn.classList.add('show');
+      // Disparar la descarga automáticamente
+      setTimeout(() => btn.click(), 400);
+      return;
+    }
+
+    if (ev.type === 'fin') {
+      const banner = document.getElementById('resultBanner');
+      banner.className = `result-banner show ${ev.exito ? 'exito' : 'error'}`;
+      document.getElementById('resultIcon').textContent = ev.exito ? '✅' : '❌';
+      document.getElementById('resultMsg').textContent = ev.msg;
+
+      document.getElementById('progressTitle').textContent =
+        ev.exito ? 'Proceso completado' : 'Proceso detenido';
+      setStatus(ev.exito ? 'done' : 'error', ev.exito ? 'LISTO' : 'ERROR');
+    }
+  };
+
+  es.onerror = () => {
+    es.close();
+    unlockUI();
+    setSpinner(false);
+    setStatus('error', 'ERROR');
+    addLog('err', 'Conexión con el servidor interrumpida.');
+  };
+}
+
+/* ── Inicio de tareas ──────────────────────────────────────────── */
+function _prepararUI(titulo, pasos) {
+  if (ocupado) {
+    alert('Ya hay un proceso en curso. Espera a que termine.');
+    return false;
+  }
+  lockUI();
+
+  // Reset panel
+  document.getElementById('progressTitle').textContent = titulo;
+  document.getElementById('resultBanner').className = 'result-banner';
+  document.getElementById('btnDownload').className = 'btn-download';
+  setStatus('running', 'EJECUTANDO');
+  setSpinner(true);
+  renderSteps(pasos);
+  addLog('titulo', titulo);
+  return true;
+}
+
+async function _iniciar(endpoint, payload) {
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      addLog('err', data.error || 'Error desconocido');
+      unlockUI(); setSpinner(false);
+      setStatus('error', 'ERROR');
+      return;
+    }
+    currentTaskId = data.task_id;
+    renderSteps(data.pasos);
+    conectarSSE(currentTaskId);
+  } catch (err) {
+    addLog('err', `Error de red: ${err.message}`);
+    unlockUI(); setSpinner(false);
+    setStatus('error', 'ERROR');
+  }
+}
+
+function iniciarDescargar() {
+  const usuario    = document.getElementById('d_usuario').value.trim();
+  const contrasena = document.getElementById('d_contrasena').value.trim();
+  const ficha      = document.getElementById('d_ficha').value.trim();
+  if (!usuario || !contrasena || !ficha) {
+    alert('Completa usuario, contraseña y número de ficha.'); return;
+  }
+  if (!_prepararUI('Descargando reporte · Ficha ' + ficha, [])) return;
+  _iniciar('/api/descargar', { usuario, contrasena, numero_ficha: ficha });
+}
+
+function iniciarConsultar() {
+  const ficha    = document.getElementById('c_ficha').value.trim();
+  if (!ficha) { alert('Ingresa el número de ficha.'); return; }
+  const nombre   = document.getElementById('c_nombre').value.trim();
+  const apellido = document.getElementById('c_apellido').value.trim();
+  const tipo     = document.querySelector('input[name="c_tipo"]:checked').value;
+  const activos  = document.getElementById('c_activos').checked;
+  if (!_prepararUI('Generando informe · Ficha ' + ficha, [])) return;
+  _iniciar('/api/consultar', { numero_ficha: ficha, nombre, apellido, tipo, solo_activos: activos });
+}
+
+function iniciarCompleto() {
+  const usuario    = document.getElementById('f_usuario').value.trim();
+  const contrasena = document.getElementById('f_contrasena').value.trim();
+  const ficha      = document.getElementById('f_ficha').value.trim();
+  if (!usuario || !contrasena || !ficha) {
+    alert('Completa usuario, contraseña y número de ficha.'); return;
+  }
+  const nombre   = document.getElementById('f_nombre').value.trim();
+  const apellido = document.getElementById('f_apellido').value.trim();
+  const tipo     = document.querySelector('input[name="f_tipo"]:checked').value;
+  const activos  = document.getElementById('f_activos').checked;
+  if (!_prepararUI('Proceso completo · Ficha ' + ficha, [])) return;
+  _iniciar('/api/completo', { usuario, contrasena, numero_ficha: ficha,
+                               nombre, apellido, tipo, solo_activos: activos });
+}
+
+/* ── Inicialización ────────────────────────────────────────────── */
+let _carpetaSeleccionada = null;
+
+(async () => {
+  try {
+    const r = await fetch('/api/carpeta');
+    const d = await r.json();
+    const badge = document.getElementById('carpetaBadge');
+    badge.textContent = '📂 ' + d.carpeta;
+    document.getElementById('carpetaActualDisplay').textContent = d.carpeta;
+    _carpetaSeleccionada = d.carpeta;
+  } catch { /* silent */ }
+})();
+
+/* ── Modal carpeta ─────────────────────────────────────────────── */
+function abrirModalCarpeta() {
+  document.getElementById('modalCarpeta').classList.add('open');
+  document.getElementById('modalMsg').className = 'modal-msg';
+  explorarRuta(_carpetaSeleccionada || '');
+}
+
+function cerrarModalCarpeta() {
+  document.getElementById('modalCarpeta').classList.remove('open');
+}
+
+function cerrarModalSiOverlay(e) {
+  if (e.target.id === 'modalCarpeta') cerrarModalCarpeta();
+}
+
+let _rutaExplorada = '';
+let _clickTimer = null;
+
+async function explorarRuta(ruta) {
+  const input = document.getElementById('explorerInput');
+  if (ruta === undefined) ruta = input.value.trim();
+  if (ruta) input.value = ruta;
+
+  const list = document.getElementById('explorerList');
+  list.innerHTML = '<div class="explorer-loading">Cargando…</div>';
+
+  try {
+    const url = '/api/explorar' + (ruta ? '?ruta=' + encodeURIComponent(ruta) : '');
+    const r = await fetch(url);
+    const d = await r.json();
+
+    if (d.error) {
+      list.innerHTML = `<div class="explorer-loading" style="color:var(--rojo)">${d.error}</div>`;
+      return;
+    }
+
+    _rutaExplorada = d.ruta_actual || ruta;
+    document.getElementById('explorerBar').textContent = _rutaExplorada || '/';
+    input.value = _rutaExplorada;
+
+    list.innerHTML = '';
+    if (!d.elementos || d.elementos.length === 0) {
+      list.innerHTML = '<div class="explorer-loading">Carpeta vacía</div>';
+      return;
+    }
+
+    d.elementos.forEach(el => {
+      const div = document.createElement('div');
+      div.className = 'explorer-item';
+      if (el.ruta === _carpetaSeleccionada) div.classList.add('selected');
+
+      const icon = el.tipo === 'padre' ? '⬆' : '📁';
+      div.innerHTML = `<span class="explorer-icon">${icon}</span><span>${el.nombre}</span>`;
+      div.title = el.ruta;
+
+      // Simple click → seleccionar como destino
+      div.addEventListener('click', () => {
+        clearTimeout(_clickTimer);
+        _clickTimer = setTimeout(() => {
+          if (el.tipo !== 'padre') {
+            _carpetaSeleccionada = el.ruta;
+            document.getElementById('explorerInput').value = el.ruta;
+            document.querySelectorAll('.explorer-item').forEach(i => i.classList.remove('selected'));
+            div.classList.add('selected');
+          } else {
+            explorarRuta(el.ruta);
+          }
+        }, 220);
+      });
+
+      // Double click → entrar a la carpeta
+      div.addEventListener('dblclick', () => {
+        clearTimeout(_clickTimer);
+        explorarRuta(el.ruta);
+      });
+
+      list.appendChild(div);
+    });
+
+  } catch (err) {
+    list.innerHTML = `<div class="explorer-loading" style="color:var(--rojo)">Error: ${err.message}</div>`;
+  }
+}
+
+async function guardarCarpeta() {
+  const ruta = document.getElementById('explorerInput').value.trim() || _carpetaSeleccionada;
+  if (!ruta) {
+    mostrarMsgModal('err', 'Selecciona o escribe una ruta primero.');
+    return;
+  }
+
+  const btn = document.getElementById('btnGuardarCarpeta');
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  try {
+    const r = await fetch('/api/carpeta', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ carpeta: ruta }),
+    });
+    const d = await r.json();
+
+    if (!r.ok) {
+      mostrarMsgModal('err', d.error || 'Error al guardar.');
+    } else {
+      _carpetaSeleccionada = d.carpeta;
+      document.getElementById('carpetaBadge').textContent = '📂 ' + d.carpeta;
+      document.getElementById('carpetaActualDisplay').textContent = d.carpeta;
+      mostrarMsgModal('ok', '✔ Carpeta guardada correctamente.');
+      setTimeout(cerrarModalCarpeta, 1200);
+    }
+  } catch (err) {
+    mostrarMsgModal('err', `Error de red: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Guardar carpeta';
+  }
+}
+
+function mostrarMsgModal(tipo, msg) {
+  const el = document.getElementById('modalMsg');
+  el.className = `modal-msg ${tipo}`;
+  el.textContent = msg;
+}
+</script>
+
+<!-- ── Modal configuración de carpeta ───────────────────────────── -->
+<div class="modal-overlay" id="modalCarpeta" onclick="cerrarModalSiOverlay(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>📂 Carpeta de trabajo</h3>
+      <button class="btn-modal-close" onclick="cerrarModalCarpeta()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="section-label" style="margin-bottom:8px;">Carpeta actual</div>
+      <div class="carpeta-actual-display" id="carpetaActualDisplay">—</div>
+
+      <div class="modal-msg" id="modalMsg"></div>
+
+      <div class="section-label" style="margin-bottom:8px;">Navegar y seleccionar</div>
+
+      <div class="modal-input-row">
+        <input type="text" id="explorerInput" placeholder="Escribe o pega una ruta…"
+               onkeydown="if(event.key==='Enter') explorarRuta()">
+        <button class="btn-go" onclick="explorarRuta()">Ir</button>
+      </div>
+
+      <div class="explorer">
+        <div class="explorer-bar" id="explorerBar">—</div>
+        <div class="explorer-list" id="explorerList">
+          <div class="explorer-loading">Cargando…</div>
+        </div>
+      </div>
+
+      <div style="font-size:.75rem;color:var(--texto-suave);">
+        💡 Haz doble clic en una carpeta para entrar, o clic simple para seleccionarla como destino.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="cerrarModalCarpeta()">Cancelar</button>
+      <button class="btn-primary" id="btnGuardarCarpeta" onclick="guardarCarpeta()">
+        Guardar carpeta
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
