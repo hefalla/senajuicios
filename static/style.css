@@ -501,3 +501,14 @@
       .panel-right { order: 1; }
       .carpeta-badge { display: none; }
     }
+
+    @media (max-width: 480px) { 
+       main {
+        padding: 16px 5px;
+        column-gap: 16px;
+        row-gap: 0;
+      }
+      .field-row{grid-template-columns: 1fr;}
+      .tab-btn {flex-direction: column;}
+      .log-card { display: none; }
+    }
