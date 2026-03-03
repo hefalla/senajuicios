@@ -44,15 +44,12 @@
       top: 0;
       z-index: 100;
     }
-    .logo-mark {
-      width: 34px; height: 34px;
-      background: var(--verde-claro);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'IBM Plex Serif', serif;
-      font-weight: 600; font-size: 14px;
-      color: #fff; letter-spacing: -.5px;
+    .logo-sena {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
       flex-shrink: 0;
+      filter: brightness(0) invert(1);
     }
     header h1 {
       font-size: 1rem; font-weight: 500; color: #fff;
@@ -498,8 +495,12 @@
         padding: 16px;
         gap: 16px;
       }
-      .panel-right { order: 1; }
       .carpeta-badge { display: none; }
+      .tabs-wrapper{column-gap: 16px;}
+      .panel-right { 
+        order: 1;
+        flex-direction: row; 
+      }
     }
 
     @media (max-width: 480px) { 
@@ -510,6 +511,7 @@
       }
       .sub{display: none;}
       .field-row{grid-template-columns: 1fr;}
+      .panel-right{flex-direction: row;}
       .tab-btn {flex-direction: column;}
       .log-card { display: none; }
     }
