@@ -513,5 +513,6 @@
       .field-row{grid-template-columns: 1fr;}
       .panel-right{flex-direction: row;}
       .tab-btn {flex-direction: column;}
+      .progress-card{flex:1;}
       .log-card { display: none; }
     }
