@@ -497,7 +497,8 @@ let _carpetaSeleccionada = null;
     const r = await fetch('/api/carpeta');
     const d = await r.json();
     const badge = document.getElementById('carpetaBadge');
-    badge.textContent = '📂 ' + d.carpeta;
+    const nombreCarpeta = d.carpeta.replace(/\\/g, '/').split('/').filter(Boolean).pop() || d.carpeta;
+    badge.textContent = '📂 ' + nombreCarpeta;
     document.getElementById('carpetaActualDisplay').textContent = d.carpeta;
     _carpetaSeleccionada = d.carpeta;
   } catch { /* silent */ }
