@@ -494,6 +494,15 @@ def api_descargar_archivo(task_id: str):
     )
 
 
+@app.route("/api/dashboard/<numero_ficha>")
+def api_dashboard(numero_ficha: str):
+    """Devuelve los datos calculados del dashboard para una ficha."""
+    datos = bk.generar_datos_dashboard(numero_ficha.strip())
+    if "error" in datos:
+        return jsonify(datos), 404
+    return jsonify(datos)
+
+
 @app.route("/api/estado")
 def api_estado():
     """Ping para verificar que el servidor está activo."""

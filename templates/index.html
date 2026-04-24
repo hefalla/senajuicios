@@ -8,6 +8,38 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@600&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .db-mc{background:var(--fondo-panel);border-radius:8px;padding:.85rem 1rem;}
+    .db-lbl{font-size:11px;color:var(--texto-suave);margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em;}
+    .db-val{font-size:22px;font-weight:500;margin:0;color:var(--texto);}
+    .db-card{background:var(--fondo-panel);border:1px solid var(--borde);border-radius:10px;padding:1rem 1.25rem;margin-bottom:10px;}
+    .db-card-title{font-size:13px;font-weight:500;color:var(--texto);margin:0 0 .75rem;}
+    .db-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;}
+    .db-badge-g{background:#EAF3DE;color:#3B6D11;}
+    .db-badge-r{background:#FCEBEB;color:#A32D2D;}
+    .db-badge-a{background:#FAEEDA;color:#854F0B;}
+    .db-badge-gr{background:#F1EFE8;color:#5F5E5A;}
+    .db-badge-b{background:#E6F1FB;color:#185FA5;}
+    .db-expand-row{cursor:pointer;}
+    .db-expand-row:hover td{background:var(--fondo-hover,rgba(0,0,0,.03));}
+    .db-detail td{background:var(--fondo-panel);padding:0!important;}
+    .db-detail-inner{padding:8px 12px 10px;}
+    .db-comp-title{font-size:11px;font-weight:500;color:var(--texto-suave);margin:6px 0 3px;white-space:normal;}
+    .db-ra-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--borde);gap:8px;}
+    .db-ra-row:last-child{border-bottom:none;}
+    .db-ra-name{font-size:11px;color:var(--texto);flex:1;white-space:normal;line-height:1.3;}
+    .db-pb{height:5px;border-radius:3px;background:var(--borde);margin-top:3px;}
+    .db-pf{height:100%;border-radius:3px;background:#1d9e75;}
+    .db-func-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--borde);gap:8px;}
+    .db-func-row:last-child{border-bottom:none;}
+    .db-func-name{font-size:12px;font-weight:500;color:var(--texto);}
+    .db-func-ra{font-size:11px;color:var(--texto-suave);margin-top:2px;white-space:normal;line-height:1.3;}
+    .db-func-date{font-size:11px;color:var(--texto-suave);white-space:nowrap;flex-shrink:0;}
+    .db-tab-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--borde);background:transparent;cursor:pointer;color:var(--texto-suave);}
+    .db-tab-btn.active{background:#1a5276;color:#fff;border-color:#1a5276;}
+    #dashboardPanel td{padding:6px 8px;border-bottom:1px solid var(--borde);color:var(--texto);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    #dashboardPanel tr:last-child>td{border-bottom:none;}
+  </style>
 </head>
 <body>
 
@@ -46,6 +78,9 @@
       </button>
       <button class="tab-btn" onclick="switchTab(2)">
         <span class="tab-icon">⚡</span> Completo
+      </button>
+      <button class="tab-btn" onclick="switchTab(3)">
+        <span class="tab-icon">📊</span> Dashboard
       </button>
     </div>
 
@@ -205,6 +240,25 @@
       </div>
     </div>
 
+    <!-- Tab 4: Dashboard --------------------------------------- -->
+    <div class="tab-content" id="tab3">
+      <div class="form-section">
+        <div class="section-label">Ficha</div>
+        <div class="field-row single">
+          <div class="field">
+            <label>Número de ficha</label>
+            <input type="text" id="db_ficha" placeholder="Ej: 2994282">
+          </div>
+        </div>
+      </div>
+      <div class="action-bar">
+        <span style="font-size:.78rem; color:var(--texto-suave);">Requiere reporte ya descargado</span>
+        <button class="btn-run" id="btn_dashboard" onclick="cargarDashboard()">
+          <span class="btn-icon">📊</span> Ver dashboard
+        </button>
+      </div>
+    </div>
+
   </div><!-- /tabs-wrapper -->
 
   <!-- ─────── Panel derecho: progreso ──────────────────────────── -->
@@ -250,6 +304,59 @@
     </div>
 
   </div><!-- /panel-right -->
+
+<!-- ── Panel Dashboard (ocupa ancho completo) ────────────────── -->
+<div id="dashboardPanel" style="display:none; grid-column:1/-1; margin-top:1rem;">
+
+  <div id="dbHeader" style="background:#1a5276;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem;color:#fff;">
+    <div style="font-size:15px;font-weight:500;" id="dbTitulo">—</div>
+    <div style="font-size:11px;opacity:.7;margin-top:3px;" id="dbSubtitulo">—</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;" id="dbMetrics">
+    <div class="db-mc"><p class="db-lbl">Total aprendices</p><p class="db-val" id="dbTotalAp">—</p></div>
+    <div class="db-mc"><p class="db-lbl">Aprendices activos</p><p class="db-val" style="color:#185FA5" id="dbActivos">—</p></div>
+    <div class="db-mc"><p class="db-lbl">RA no aprobados</p><p class="db-val" style="color:#e24b4a" id="dbRaNoAprob">—</p></div>
+    <div class="db-mc"><p class="db-lbl">Competencias sin evaluar</p><p class="db-val" style="color:#ba7517" id="dbCompSinEvaluar">—</p></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+    <div class="db-card">
+      <p class="db-card-title">Estado de aprendices</p>
+      <div id="dbLegEstados" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:11px;color:var(--texto-suave);"></div>
+      <div style="position:relative;height:200px;"><canvas id="dbChartEstados" role="img" aria-label="Distribución de estados de aprendices"></canvas></div>
+    </div>
+    <div class="db-card">
+      <p class="db-card-title">Distribución de juicios</p>
+      <div id="dbLegJuicios" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:11px;color:var(--texto-suave);"></div>
+      <div style="position:relative;height:200px;"><canvas id="dbChartJuicios" role="img" aria-label="Distribución de juicios evaluativos"></canvas></div>
+    </div>
+  </div>
+
+  <div class="db-card" style="margin-bottom:10px;">
+    <p class="db-card-title">Últimos 10 funcionarios que registraron un juicio</p>
+    <div id="dbFuncionarios"></div>
+  </div>
+
+  <div class="db-card">
+    <p class="db-card-title">Avance por aprendiz</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem;" id="dbFiltros"></div>
+    <table style="width:100%;font-size:12px;border-collapse:collapse;table-layout:fixed;">
+      <thead>
+        <tr>
+          <th style="width:30%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Aprendiz</th>
+          <th style="width:15%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Estado</th>
+          <th style="width:8%;text-align:right;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Total</th>
+          <th style="width:9%;text-align:right;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Aprob.</th>
+          <th style="width:10%;text-align:right;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">No aprob.</th>
+          <th style="width:28%;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Progreso</th>
+        </tr>
+      </thead>
+      <tbody id="dbTbody"></tbody>
+    </table>
+  </div>
+
+</div><!-- /dashboardPanel -->
 
 </main>
 
@@ -629,7 +736,184 @@ function mostrarMsgModal(tipo, msg) {
   el.className = `modal-msg ${tipo}`;
   el.textContent = msg;
 }
+/* ── Dashboard ─────────────────────────────────────────────────── */
+const DB_ESTADO_COLORS = {
+  'EN FORMACION':    '#185FA5',
+  'CANCELADO':       '#888780',
+  'TRASLADADO':      '#D85A30',
+  'RETIRO VOLUNTARIO':'#BA7517',
+  'APLAZADO':        '#639922',
+  'CONDICIONADO':    '#D4537E',
+};
+const DB_ESTADO_BADGE = {
+  'EN FORMACION':'db-badge-b','CANCELADO':'db-badge-gr','TRASLADADO':'db-badge-gr',
+  'RETIRO VOLUNTARIO':'db-badge-a','APLAZADO':'db-badge-a','CONDICIONADO':'db-badge-r',
+};
+const DB_ESTADO_LABEL = {
+  'EN FORMACION':'En formación','CANCELADO':'Cancelado','TRASLADADO':'Trasladado',
+  'RETIRO VOLUNTARIO':'Retiro vol.','APLAZADO':'Aplazado','CONDICIONADO':'Condicionado',
+};
+const DB_JUICIO_COLORS = {'APROBADO':'#1d9e75','POR EVALUAR':'#BA7517','NO APROBADO':'#e24b4a'};
+
+let _dbData      = null;
+let _dbFiltro    = 'todos';
+let _dbChartEst  = null;
+let _dbChartJui  = null;
+
+async function cargarDashboard() {
+  const ficha = document.getElementById('db_ficha').value.trim();
+  if (!ficha) { alert('Ingresa el número de ficha.'); return; }
+
+  const btn = document.getElementById('btn_dashboard');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="btn-icon">⏳</span> Cargando…';
+
+  try {
+    const r = await fetch(`/api/dashboard/${encodeURIComponent(ficha)}`);
+    const d = await r.json();
+    if (!r.ok) { alert(d.error || 'Error al cargar el dashboard.'); return; }
+    _dbData = d;
+    _dbFiltro = 'todos';
+    _dbExpanded = {};
+    _renderDashboard();
+    document.getElementById('dashboardPanel').style.display = 'block';
+    document.getElementById('panel-right') && (document.getElementById('panel-right').style.display = 'none');
+    document.getElementById('dashboardPanel').scrollIntoView({behavior:'smooth', block:'start'});
+  } catch(e) {
+    alert('Error de red: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="btn-icon">📊</span> Ver dashboard';
+  }
+}
+
+function _renderDashboard() {
+  const d = _dbData;
+  const m = d.ficha_meta;
+
+  document.getElementById('dbTitulo').textContent =
+    `Juicios evaluativos — Ficha ${m.ficha}`;
+  document.getElementById('dbSubtitulo').textContent =
+    `${m.denominacion} · ${m.regional} · ${m.centro} · Reporte: ${m.fecha_reporte}`;
+
+  document.getElementById('dbTotalAp').textContent        = d.total_aprendices;
+  document.getElementById('dbActivos').textContent         = d.aprendices_activos;
+  document.getElementById('dbRaNoAprob').textContent       = d.ra_no_aprobados;
+  document.getElementById('dbCompSinEvaluar').textContent  = d.competencias_sin_evaluar;
+
+  _renderCharts(d);
+  _renderFuncionarios(d.ultimos_funcionarios);
+  _renderFiltros(d.aprendices);
+  _renderTablaAp();
+}
+
+function _renderCharts(d) {
+  const estLabels = Object.keys(d.estados);
+  const estVals   = Object.values(d.estados);
+  const estColors = estLabels.map(l => DB_ESTADO_COLORS[l] || '#888780');
+
+  const legEst = document.getElementById('dbLegEstados');
+  legEst.innerHTML = estLabels.map((l,i) =>
+    `<span style="display:flex;align-items:center;gap:4px;">
+      <span style="width:9px;height:9px;border-radius:2px;background:${estColors[i]};flex-shrink:0;display:inline-block;"></span>
+      ${DB_ESTADO_LABEL[l]||l} (${estVals[i]})
+    </span>`
+  ).join('');
+
+  if (_dbChartEst) _dbChartEst.destroy();
+  _dbChartEst = new Chart(document.getElementById('dbChartEstados'), {
+    type: 'doughnut',
+    data: { labels: estLabels, datasets: [{ data: estVals, backgroundColor: estColors, borderWidth: 2, borderColor: 'transparent' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+
+  const juiLabels = Object.keys(d.juicios);
+  const juiVals   = Object.values(d.juicios);
+  const juiColors = juiLabels.map(l => DB_JUICIO_COLORS[l] || '#888780');
+  const total     = juiVals.reduce((a,b) => a+b, 0);
+
+  const legJui = document.getElementById('dbLegJuicios');
+  legJui.innerHTML = juiLabels.map((l,i) =>
+    `<span style="display:flex;align-items:center;gap:4px;">
+      <span style="width:9px;height:9px;border-radius:2px;background:${juiColors[i]};flex-shrink:0;display:inline-block;"></span>
+      ${l.charAt(0)+l.slice(1).toLowerCase()} (${juiVals[i]} — ${Math.round(juiVals[i]/total*100)}%)
+    </span>`
+  ).join('');
+
+  if (_dbChartJui) _dbChartJui.destroy();
+  _dbChartJui = new Chart(document.getElementById('dbChartJuicios'), {
+    type: 'doughnut',
+    data: { labels: juiLabels, datasets: [{ data: juiVals, backgroundColor: juiColors, borderWidth: 2, borderColor: 'transparent' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+}
+
+function _renderFuncionarios(lista) {
+  const el = document.getElementById('dbFuncionarios');
+  el.innerHTML = lista.map(f =>
+    `<div class="db-func-row">
+      <div style="flex:1;min-width:0;">
+        <div class="db-func-name">${f.nombre}</div>
+        <div class="db-func-ra">${f.ra}</div>
+      </div>
+      <div class="db-func-date">${f.fecha}</div>
+    </div>`
+  ).join('');
+}
+
+function _renderFiltros(aprendices) {
+  const estados = ['todos', ...new Set(aprendices.map(a => a.estado))];
+  const cont = document.getElementById('dbFiltros');
+  cont.innerHTML = estados.map(e =>
+    `<button class="db-tab-btn${e===_dbFiltro?' active':''}"
+      onclick="dbFiltrar('${e}',this)">
+      ${e==='todos'?'Todos':(DB_ESTADO_LABEL[e]||e)}
+    </button>`
+  ).join('');
+}
+
+function dbFiltrar(estado, btn) {
+  _dbFiltro = estado;
+  document.querySelectorAll('.db-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _renderTablaAp();
+}
+
+function _juicioBadge(j) {
+  if (j==='APROBADO')    return '<span class="db-badge db-badge-g">Aprobado</span>';
+  if (j==='NO APROBADO') return '<span class="db-badge db-badge-r">No aprobado</span>';
+  return '<span class="db-badge db-badge-gr">Por evaluar</span>';
+}
+
+function _renderTablaAp() {
+  const data = _dbFiltro === 'todos'
+    ? _dbData.aprendices
+    : _dbData.aprendices.filter(a => a.estado === _dbFiltro);
+
+  let html = '';
+  data.forEach((ap) => {
+    const pct = Math.round(ap.aprobados / Math.max(ap.total_ra, 1) * 100);
+    const bc  = DB_ESTADO_BADGE[ap.estado] || 'db-badge-gr';
+    const el  = DB_ESTADO_LABEL[ap.estado] || ap.estado;
+
+    html += `<tr>
+      <td style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ap.nombre}</td>
+      <td><span class="db-badge ${bc}">${el}</span></td>
+      <td style="text-align:right;">${ap.total_ra}</td>
+      <td style="text-align:right;color:#1d9e75;font-weight:500;">${ap.aprobados}</td>
+      <td style="text-align:right;color:${ap.no_aprobados>0?'#e24b4a':'var(--texto-suave)'};">${ap.no_aprobados}</td>
+      <td>
+        <div style="font-size:10px;color:var(--texto-suave);">${pct}%</div>
+        <div class="db-pb"><div class="db-pf" style="width:${pct}%"></div></div>
+      </td>
+    </tr>`;
+  });
+
+  document.getElementById('dbTbody').innerHTML = html;
+}
+
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
 <!-- ── Modal configuración de carpeta ───────────────────────────── -->
 <div class="modal-overlay" id="modalCarpeta" onclick="cerrarModalSiOverlay(event)">

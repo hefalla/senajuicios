@@ -1743,6 +1743,159 @@ def buscar_excel_ficha(numero_ficha: str) -> Optional[str]:
     return None
 
 
+
+# ══════════════════════════════════════════════════════════════════
+#  DASHBOARD
+# ══════════════════════════════════════════════════════════════════
+
+def generar_datos_dashboard(numero_ficha: str) -> dict:
+    """
+    Lee el Excel de la ficha y devuelve un dict JSON-serializable
+    con todos los datos necesarios para el dashboard interactivo.
+    """
+    ruta_excel = buscar_excel_ficha(numero_ficha)
+    if not ruta_excel:
+        return {"error": f"No hay reporte descargado para la ficha {numero_ficha}."}
+
+    import xlrd as _xlrd
+
+    wb  = _xlrd.open_workbook(ruta_excel)
+    ws  = wb.sheet_by_index(0)
+    meta_raw = {str(ws.cell_value(i, 0)).strip(): str(ws.cell_value(i, 2)).strip()
+                for i in range(12)}
+
+    def _meta(key, default="—"):
+        return meta_raw.get(key, default).strip() or default
+
+    def _xldate(val):
+        try:
+            dt = _xlrd.xldate_as_datetime(float(val), wb.datemode)
+            return dt.strftime("%d/%m/%Y")
+        except Exception:
+            return val
+
+    ficha_meta = {
+        "ficha":         _meta("Ficha de Caracterización:").replace(".0", ""),
+        "denominacion":  _meta("Denominación:"),
+        "estado_ficha":  _meta("Estado de la Ficha de Caracterización:"),
+        "fecha_inicio":  _xldate(_meta("Fecha Inicio:")),
+        "fecha_fin":     _xldate(_meta("Fecha Fin:")),
+        "modalidad":     _meta("Modalidad de Formación:"),
+        "regional":      _meta("Regional:"),
+        "centro":        _meta("Centro de Formación:"),
+        "fecha_reporte": _meta("Fecha del Reporte:"),
+    }
+
+    df = pd.read_excel(ruta_excel, header=12)
+    df.columns = [
+        "tipo_doc", "num_doc", "nombre", "apellidos",
+        "estado", "competencia", "ra", "juicio",
+        "_", "fecha", "funcionario",
+    ]
+    for col in ["nombre", "apellidos", "estado", "competencia", "ra", "juicio", "funcionario"]:
+        df[col] = df[col].astype(str).str.strip()
+    df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
+
+    # ── Métricas generales ────────────────────────────────────────
+    total_aprendices   = int(df["num_doc"].nunique())
+    activos_estados    = ["EN FORMACION", "CONDICIONADO"]
+    aprendices_activos = int(df[df["estado"].isin(activos_estados)]["num_doc"].nunique())
+    ra_no_aprobados    = int((df["juicio"] == "NO APROBADO").sum())
+
+    # Competencias sin evaluar: todas sus filas (excluyendo trasladados)
+    # tienen juicio "POR EVALUAR"
+    df_no_traslado = df[df["estado"] != "TRASLADADO"]
+    comp_juicios = df_no_traslado.groupby("competencia")["juicio"].apply(list)
+    competencias_sin_evaluar = int(
+        sum(1 for ras in comp_juicios if all(j == "POR EVALUAR" for j in ras))
+    )
+
+    # ── Estado de aprendices ──────────────────────────────────────
+    estado_counts = (
+        df.groupby("num_doc")["estado"].first()
+        .value_counts().to_dict()
+    )
+    estados = {str(k): int(v) for k, v in estado_counts.items()}
+
+    # ── Distribución de juicios ───────────────────────────────────
+    juicio_counts = df["juicio"].value_counts().to_dict()
+    juicios = {str(k): int(v) for k, v in juicio_counts.items()}
+
+    # ── Últimos 10 funcionarios ───────────────────────────────────
+    df_con_fecha = df[
+        df["fecha"].notna() &
+        (~df["funcionario"].isin(["", "  -   ", "nan"]))
+    ].copy()
+    df_con_fecha = df_con_fecha.sort_values("fecha", ascending=False)
+    ultimos_func = df_con_fecha.drop_duplicates(subset=["funcionario"], keep="first").head(10)
+
+    def _limpiar_funcionario(s):
+        import re
+        return re.sub(r"^CC\s+\d+\s+-\s+", "", str(s)).strip().title()
+
+    def _limpiar_ra(s):
+        import re
+        return re.sub(r"^\d+\s+-\s+", "", str(s)).strip().capitalize()
+
+    ultimos_funcionarios = [
+        {
+            "nombre": _limpiar_funcionario(r["funcionario"]),
+            "ra":     _limpiar_ra(r["ra"]),
+            "fecha":  r["fecha"].strftime("%d/%m/%Y %H:%M"),
+        }
+        for _, r in ultimos_func.iterrows()
+    ]
+
+    # ── Avance por aprendiz ───────────────────────────────────────
+    aprendices_list = []
+    grupos_ap = df.groupby("num_doc")
+
+    for num_doc, grupo in grupos_ap:
+        nombre_ap  = grupo["nombre"].iloc[0]
+        apellido_ap = grupo["apellidos"].iloc[0]
+        estado_ap  = grupo["estado"].iloc[0]
+        total_ra   = len(grupo)
+        aprobados  = int((grupo["juicio"] == "APROBADO").sum())
+        no_aprobados = int((grupo["juicio"] == "NO APROBADO").sum())
+
+        competencias = []
+        for comp_nombre, comp_grupo in grupo.groupby("competencia", sort=False):
+            ras = [
+                {
+                    "ra":     _limpiar_ra(row["ra"]),
+                    "juicio": row["juicio"],
+                }
+                for _, row in comp_grupo.iterrows()
+            ]
+            competencias.append({
+                "competencia": str(comp_nombre).strip(),
+                "ras": ras,
+            })
+
+        aprendices_list.append({
+            "nombre":       f"{nombre_ap} {apellido_ap}".title(),
+            "estado":       estado_ap,
+            "total_ra":     total_ra,
+            "aprobados":    aprobados,
+            "no_aprobados": no_aprobados,
+        })
+
+    _orden_estado = {"EN FORMACION": 0, "CONDICIONADO": 1}
+    aprendices_list.sort(key=lambda x: (_orden_estado.get(x["estado"], 2), -x["aprobados"] / max(x["total_ra"], 1)))
+
+    return {
+        "ficha_meta":              ficha_meta,
+        "total_aprendices":        total_aprendices,
+        "aprendices_activos":      aprendices_activos,
+        "competencias_sin_evaluar": competencias_sin_evaluar,
+        "ra_no_aprobados":         ra_no_aprobados,
+        "estados":                 estados,
+        "juicios":                 juicios,
+        "ultimos_funcionarios":    ultimos_funcionarios,
+        "aprendices":              aprendices_list,
+    }
+
+
 # ══════════════════════════════════════════════════════════════════
 #  INTERFAZ GRÁFICA (tkinter)
 # ══════════════════════════════════════════════════════════════════
