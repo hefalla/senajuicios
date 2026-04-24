@@ -5,7 +5,7 @@
 ╚══════════════════════════════════════════════════════════════════╝
 
 Ejecutar:
-    pip install flask selenium webdriver-manager pandas openpyxl xlrd python-docx
+    pip install flask selenium webdriver-manager pandas openpyxl xlrd reportlab
     python app.py
 
 Acceder en: http://localhost:5000
@@ -50,7 +50,7 @@ def _new_task(task_id: str) -> dict:
         "id":      task_id,
         "queue":   queue.Queue(),
         "status":  "running",   # running | done | error
-        "archivo": None,        # ruta local del DOCX generado
+        "archivo": None,        # ruta local del PDF generado
         "created": time.time(),
     }
     with _task_lock:
@@ -308,8 +308,18 @@ def _run_completo(
 
 def _mensaje_error(ex: Exception) -> str:
     txt = str(ex).lower()
+    if "portal_no_disponible" in txt:
+        return (
+            "⚠️ El portal Sofía Plus no se encuentra disponible en este momento. "
+            "Por favor intenta de nuevo más tarde."
+        )
     if "credenciales_invalidas" in txt:
         return "Usuario o contraseña incorrectos. Verifica tus credenciales de Sofía Plus."
+    if "formulario_no_encontrado" in txt:
+        return (
+            "⚠️ El portal Sofía Plus no se encuentra disponible en este momento. "
+            "Por favor intenta de nuevo más tarde."
+        )
     if "navegador_no_encontrado" in txt:
         return ("No se encontró Chrome ni Edge instalado. "
                 "Instala uno de los dos navegadores para continuar.")
@@ -320,6 +330,7 @@ def _mensaje_error(ex: Exception) -> str:
     if "consultar_fallido" in txt:
         return "No se pudo hacer clic en 'Consultar'. Intenta de nuevo."
     if "chrome" in txt or "driver" in txt or "webdriver" in txt:
+        print(f"[DEBUG navegador] {str(ex)}")
         return "Problema con el navegador. Asegúrate de tener Chrome o Edge instalado y actualizado."
     return f"Error inesperado: {str(ex)[:200]}"
 
@@ -441,7 +452,7 @@ def api_stream(task_id: str):
 
 @app.route("/api/descargar-archivo/<task_id>")
 def api_descargar_archivo(task_id: str):
-    """Sirve el DOCX (o ZIP de carpeta) generado para descarga en el browser."""
+    """Sirve el PDF (o ZIP de carpeta) generado para descarga en el browser."""
     task = _get_task(task_id)
     if not task or not task.get("archivo"):
         return jsonify(error="Archivo no disponible"), 404
@@ -466,14 +477,14 @@ def api_descargar_archivo(task_id: str):
             mimetype="application/zip",
         )
 
-    # ── Archivo único (DOCX) ──────────────────────────────────────
+    # ── Archivo único (PDF) ──────────────────────────────────────
     if not os.path.isfile(ruta):
         return jsonify(error="Archivo no encontrado en disco"), 404
 
     ext = os.path.splitext(ruta)[1].lower()
     mimetype = (
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        if ext == ".docx" else "application/octet-stream"
+        "application/pdf"
+        if ext == ".pdf" else "application/octet-stream"
     )
     return send_file(
         ruta,

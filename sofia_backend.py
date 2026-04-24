@@ -5,7 +5,7 @@
 ╚══════════════════════════════════════════════════════════════════╝
 
 REQUISITOS:
-    pip install selenium pandas openpyxl webdriver-manager xlrd python-docx
+    pip install selenium pandas openpyxl webdriver-manager xlrd reportlab
 
 USO:
     python sofia_plus_juicios.py
@@ -36,11 +36,32 @@ if sys.platform == "win32":
 
 # ── Dependencias opcionales ───────────────────────────────────────
 try:
-    from docx import Document as DocxDocument
-    from docx.shared import Pt, RGBColor
-    DOCX_DISPONIBLE = True
-except ImportError:
-    DOCX_DISPONIBLE = False
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.lib.enums import TA_LEFT, TA_CENTER
+    from reportlab.platypus import (
+        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+        HRFlowable, PageBreak, KeepTogether,
+    )
+    from reportlab.platypus.flowables import HRFlowable
+
+    # Colores institucionales SENA
+    _SENA_AZUL   = colors.HexColor("#1F497D")
+    _SENA_GREEN  = colors.HexColor("#39A935")
+    _ROJO_PDF    = colors.HexColor("#C00000")
+    _NARANJA_PDF = colors.HexColor("#FF8000")
+    _GRIS_CLARO  = colors.HexColor("#F2F2F2")
+    _GRIS_LINEA  = colors.HexColor("#CCCCCC")
+
+    PDF_DISPONIBLE = True
+except ImportError as e:
+    print(f"[DEBUG] reportlab ImportError: {e}")
+    PDF_DISPONIBLE = False
+except Exception as e:
+    print(f"[DEBUG] Error inesperado al importar reportlab: {e}")
+    PDF_DISPONIBLE = False
 
 # ── Pandas ────────────────────────────────────────────────────────
 import pandas as pd
@@ -574,6 +595,32 @@ def _rellenar_formulario_login(driver, usuario: str, contrasena: str) -> bool:
 
 
 
+
+# ── Señales de error del portal Sofía Plus ────────────────────────
+_PALABRAS_PORTAL_CAIDO = {
+    "operación no válida", "operacion no valida",
+    "500 servletexception", "servletexception",
+    "outbound relaying failed",
+    "no principal found",
+    "sso agent",
+    "verify your sso",
+    "josso",
+    "cachedconnectionvalve",
+}
+
+
+def _verificar_portal_disponible(driver) -> None:
+    """
+    Comprueba si el portal respondió con un error de servidor (500/SSO).
+    Lanza RuntimeError("PORTAL_NO_DISPONIBLE: ...") si lo detecta.
+    """
+    texto = _texto_completo_pagina_y_frames(driver)
+    if any(p in texto for p in _PALABRAS_PORTAL_CAIDO):
+        raise RuntimeError(
+            "PORTAL_NO_DISPONIBLE: El portal Sofía Plus no se encuentra disponible "
+            "en este momento. Por favor intenta de nuevo más tarde."
+        )
+
 def iniciar_sesion(driver, usuario: str, contrasena: str) -> None:
     titulo("PASO 1: Inicio de sesión en Sofía Plus")
     info("Cargando portal ...")
@@ -587,6 +634,9 @@ def iniciar_sesion(driver, usuario: str, contrasena: str) -> None:
         )
     except TimeoutException:
         pass
+
+    # Detectar error 500/SSO del portal antes de intentar el login
+    _verificar_portal_disponible(driver)
 
     # ── Estrategia 1: usar el caché del iframe que funcionó la última vez ────
     iframe_cacheado = _leer_archivo(_LOGIN_CACHE_FILE)  # guarda índice como str
@@ -799,6 +849,7 @@ def _clic_en_menu(driver, textos: List[str], descripcion: str, timeout: float = 
 
 def seleccionar_rol_instructor(driver) -> None:
     titulo("PASO 2: Selección de rol Instructor")
+    _verificar_portal_disponible(driver)
     _clic_en_menu(driver, ["instructor", "Instructor"], "Rol Instructor", timeout=8)
 
 
@@ -1284,64 +1335,145 @@ def _filtrar_aprendices(
     return df[mask].copy()
 
 
-def _crear_doc_base(criterio_desc: str, total_aprendices: int) -> "DocxDocument":
-    doc = DocxDocument()
-    t = doc.add_heading("Informe de Juicios de Evaluacion - Sofia Plus", level=1)
-    t.runs[0].font.color.rgb = RGBColor(0x1F, 0x49, 0x7D)
-    for lbl, val in [
-        ("Criterio de búsqueda:", criterio_desc),
-        ("Generado:", datetime.now().strftime("%Y-%m-%d %H:%M")),
-        ("Total aprendices:", str(total_aprendices)),
-    ]:
-        p = doc.add_paragraph()
-        p.add_run(f"{lbl} ").bold = True
-        p.add_run(val)
-    return doc
+# ══════════════════════════════════════════════════════════════════
+#  ESTILOS PDF (ReportLab)
+# ══════════════════════════════════════════════════════════════════
+
+def _estilos_pdf():
+    base = getSampleStyleSheet()
+
+    titulo_style = ParagraphStyle(
+        "TituloPrincipal",
+        parent=base["Title"],
+        fontSize=16,
+        textColor=_SENA_AZUL,
+        spaceAfter=6,
+        fontName="Helvetica-Bold",
+    )
+    subtitulo_style = ParagraphStyle(
+        "SubTitulo",
+        parent=base["Heading2"],
+        fontSize=12,
+        textColor=_SENA_AZUL,
+        spaceBefore=14,
+        spaceAfter=4,
+        fontName="Helvetica-Bold",
+    )
+    seccion_style = ParagraphStyle(
+        "Seccion",
+        parent=base["Heading3"],
+        fontSize=10,
+        textColor=colors.HexColor("#C05000"),
+        spaceBefore=10,
+        spaceAfter=3,
+        fontName="Helvetica-Bold",
+    )
+    meta_style = ParagraphStyle(
+        "Meta",
+        parent=base["Normal"],
+        fontSize=9,
+        textColor=colors.HexColor("#444444"),
+        spaceAfter=2,
+    )
+    ra_style = ParagraphStyle(
+        "RA",
+        parent=base["Normal"],
+        fontSize=9,
+        leftIndent=12,
+        spaceAfter=1,
+    )
+    estado_style = ParagraphStyle(
+        "Estado",
+        parent=base["Normal"],
+        fontSize=8,
+        leftIndent=24,
+        spaceAfter=5,
+        textColor=_NARANJA_PDF,
+    )
+    aprobado_style = ParagraphStyle(
+        "Aprobado",
+        parent=base["Normal"],
+        fontSize=10,
+        textColor=_SENA_GREEN,
+        fontName="Helvetica-Bold",
+        spaceAfter=6,
+    )
+    return {
+        "titulo": titulo_style,
+        "subtitulo": subtitulo_style,
+        "seccion": seccion_style,
+        "meta": meta_style,
+        "ra": ra_style,
+        "estado": estado_style,
+        "aprobado": aprobado_style,
+        "normal": base["Normal"],
+    }
 
 
-def _tabla_resumen_doc(doc, total_ap: int, aprobados_ap: int,
-                       pend_por_eval: int, pend_no_aprob: int) -> None:
-    tabla = doc.add_table(rows=4, cols=2)
-    tabla.style = "Table Grid"
-    filas = [
-        ("Total RA",     str(total_ap)),
-        ("Aprobados",    str(aprobados_ap)),
-        ("Por Evaluar",  str(pend_por_eval)),
-        ("No Aprobados", str(pend_no_aprob)),
+def _tabla_resumen_pdf(total_ap: int, aprobados_ap: int,
+                       pend_por_eval: int, pend_no_aprob: int):
+    """Devuelve un elemento Table de ReportLab con el resumen del aprendiz."""
+    data = [
+        ["Total RA",     str(total_ap)],
+        ["Aprobados",    str(aprobados_ap)],
+        ["Por Evaluar",  str(pend_por_eval)],
+        ["No Aprobados", str(pend_no_aprob)],
     ]
-    for i, (lbl, val) in enumerate(filas):
-        tabla.rows[i].cells[0].paragraphs[0].add_run(lbl).bold = True
-        run = tabla.rows[i].cells[1].paragraphs[0].add_run(val)
-        if lbl == "No Aprobados" and int(val) > 0:
-            run.font.color.rgb = RGBColor(0xC0, 0x00, 0x00)
-        elif lbl == "Por Evaluar" and int(val) > 0:
-            run.font.color.rgb = RGBColor(0xFF, 0x80, 0x00)
+    tabla = Table(data, colWidths=[8 * cm, 4 * cm])
+    estilo = [
+        ("BACKGROUND",  (0, 0), (-1, 0), _GRIS_CLARO),
+        ("BACKGROUND",  (0, 1), (-1, 1), colors.white),
+        ("BACKGROUND",  (0, 2), (-1, 2), colors.white),
+        ("BACKGROUND",  (0, 3), (-1, 3), colors.white),
+        ("FONTNAME",    (0, 0), (0, -1), "Helvetica-Bold"),
+        ("FONTNAME",    (1, 0), (1, -1), "Helvetica"),
+        ("FONTSIZE",    (0, 0), (-1, -1), 9),
+        ("GRID",        (0, 0), (-1, -1), 0.5, _GRIS_LINEA),
+        ("VALIGN",      (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING",  (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+    ]
+    if pend_no_aprob > 0:
+        estilo.append(("TEXTCOLOR", (1, 3), (1, 3), _ROJO_PDF))
+        estilo.append(("FONTNAME",  (1, 3), (1, 3), "Helvetica-Bold"))
+    if pend_por_eval > 0:
+        estilo.append(("TEXTCOLOR", (1, 2), (1, 2), _NARANJA_PDF))
+        estilo.append(("FONTNAME",  (1, 2), (1, 2), "Helvetica-Bold"))
+    if aprobados_ap == total_ap and total_ap > 0:
+        estilo.append(("TEXTCOLOR", (1, 1), (1, 1), _SENA_GREEN))
+        estilo.append(("FONTNAME",  (1, 1), (1, 1), "Helvetica-Bold"))
+    tabla.setStyle(TableStyle(estilo))
+    return tabla
 
 
-def _secciones_pendientes_doc(doc, df_pend: pd.DataFrame, meta: _ColumnasMeta) -> None:
-    doc.add_paragraph()
-    doc.add_heading("Resultados Pendientes", level=3)
+def _secciones_pendientes_pdf(
+    story: list, df_pend: pd.DataFrame, meta: _ColumnasMeta, estilos: dict
+) -> None:
+    """Agrega al story las secciones de resultados pendientes por competencia."""
+    story.append(Spacer(1, 6))
+    story.append(Paragraph("Resultados Pendientes", estilos["subtitulo"]))
+
     for comp, grupo in df_pend.groupby(meta.competencia, sort=False):
         comp_str = str(comp).strip()
         if comp_str.lower() in ("nan", ""):
             comp_str = "Sin competencia asignada"
-        h = doc.add_heading(comp_str, level=4)
-        if h.runs:
-            h.runs[0].font.color.rgb = RGBColor(0xC0, 0x50, 0x00)
-        for _, fila in grupo.iterrows():
+
+        bloque = [Paragraph(comp_str, estilos["seccion"])]
+
+        for i, (_, fila) in enumerate(grupo.iterrows(), 1):
             ra  = str(fila[meta.ra]).strip()
             jui = str(fila[meta.juicio]).strip()
-            p = doc.add_paragraph(style="List Number")
-            p.add_run(ra)
-            p2 = doc.add_paragraph()
-            p2.paragraph_format.left_indent = Pt(24)
-            p2.add_run("Estado: ").bold = True
-            run_j = p2.add_run(jui)
-            run_j.font.color.rgb = (
-                RGBColor(0xC0, 0x00, 0x00)
-                if "no aprobado" in jui.lower()
-                else RGBColor(0xFF, 0x80, 0x00)
-            )
+            es_no_aprob = "no aprobado" in jui.lower()
+
+            color_hex = "#C00000" if es_no_aprob else "#FF8000"
+            bloque.append(Paragraph(f"{i}. {ra}", estilos["ra"]))
+            bloque.append(Paragraph(
+                f'<font color="{color_hex}"><b>Estado:</b> {jui}</font>',
+                estilos["estado"],
+            ))
+
+        story.append(KeepTogether(bloque))
 
 
 def analizar_juicios(
@@ -1350,13 +1482,17 @@ def analizar_juicios(
     apellido: str,
     solo_activos: bool = False,
 ) -> None:
-    """Genera un documento DOCX consolidado con todos los aprendices filtrados."""
+    """Genera un PDF consolidado con todos los aprendices filtrados."""
     _t_inf0 = time.time()
     titulo("PASO 6: Análisis de resultados de aprendizaje")
     info(f"Procesando: {os.path.basename(ruta_excel)}")
 
     nombre   = (nombre   or "").strip()
     apellido = (apellido or "").strip()
+
+    if not PDF_DISPONIBLE:
+        err("reportlab no instalado. Instala con: pip install reportlab")
+        return
 
     df, meta = _parsear_excel(ruta_excel)
     df_filtrado = _filtrar_aprendices(df, meta, nombre, apellido, solo_activos)
@@ -1375,14 +1511,27 @@ def analizar_juicios(
     sufijo = _sufijo_nombre_archivo(nombre, apellido)
     ruta_resumen = os.path.join(
         os.path.dirname(ruta_excel),
-        f"RESUMEN_{sufijo}_{datetime.now().strftime('%Y%m%d_%H%M')}.docx",
+        f"RESUMEN_{sufijo}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
     )
 
-    if not DOCX_DISPONIBLE:
-        err("python-docx no instalado. Instala con: python -m pip install python-docx")
-        return
+    estilos = _estilos_pdf()
+    doc_pdf = SimpleDocTemplate(
+        ruta_resumen,
+        pagesize=letter,
+        leftMargin=2 * cm, rightMargin=2 * cm,
+        topMargin=2 * cm, bottomMargin=2 * cm,
+        title="Informe de Juicios de Evaluacion - Sofia Plus",
+    )
+    story = []
 
-    doc = _crear_doc_base(criterio_desc, total)
+    # Encabezado general
+    story.append(Paragraph("Informe de Juicios de Evaluacion - Sofia Plus", estilos["titulo"]))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=_SENA_GREEN, spaceAfter=6))
+    story.append(Paragraph(f'<b>Criterio de búsqueda:</b> {criterio_desc}', estilos["meta"]))
+    story.append(Paragraph(f'<b>Generado:</b> {datetime.now().strftime("%Y-%m-%d %H:%M")}', estilos["meta"]))
+    story.append(Paragraph(f'<b>Total aprendices:</b> {total}', estilos["meta"]))
+    story.append(Spacer(1, 12))
+
     sep = "=" * 62
 
     for idx, (_, fila_ap) in enumerate(aprendices_unicos.iterrows(), 1):
@@ -1398,9 +1547,13 @@ def analizar_juicios(
         df_pend  = df_ap[df_ap[meta.juicio].apply(_es_pendiente)]
         df_aprob = df_ap[~df_ap[meta.juicio].apply(_es_pendiente)]
 
-        total_ap     = len(df_ap)
-        aprobados_ap = len(df_aprob)
+        total_ap      = len(df_ap)
+        aprobados_ap  = len(df_aprob)
         pendientes_ap = len(df_pend)
+        pend_no_aprob = len(
+            df_pend[df_pend[meta.juicio].astype(str).str.lower().str.contains("no aprobado", na=False)]
+        )
+        pend_por_eval = pendientes_ap - pend_no_aprob
 
         # Consola
         print(f"\n{NEGRITA}{sep}{RESET}")
@@ -1409,46 +1562,20 @@ def analizar_juicios(
         print(f"  {'Total RA:'.ljust(34)}{NEGRITA}{total_ap}{RESET}")
         print(f"  {VERDE}{'Aprobados:'.ljust(34)}{RESET}{NEGRITA}{aprobados_ap}{RESET}")
         print(f"  {ROJO}{'Pendientes:'.ljust(34)}{RESET}{NEGRITA}{pendientes_ap}{RESET}")
-        print()
+
+        # PDF — bloque por aprendiz
+        if idx > 1:
+            story.append(HRFlowable(width="100%", thickness=0.5, color=_GRIS_LINEA, spaceBefore=12, spaceAfter=6))
+
+        story.append(Paragraph(nombre_completo.upper(), estilos["subtitulo"]))
+        story.append(_tabla_resumen_pdf(total_ap, aprobados_ap, pend_por_eval, pend_no_aprob))
 
         if pendientes_ap > 0:
-            for comp, grupo in df_pend.groupby(meta.competencia, sort=False):
-                comp_str = str(comp).strip()
-                if comp_str.lower() in ("nan", ""):
-                    comp_str = "Sin competencia asignada"
-                print(f"  {AMARILLO}{NEGRITA}Competencia: {comp_str}{RESET}")
-                for i2, (_, f2) in enumerate(grupo.iterrows(), 1):
-                    ra  = str(f2[meta.ra]).strip()
-                    jui = str(f2[meta.juicio]).strip()
-                    color = ROJO if "no aprobado" in jui.lower() else AMARILLO
-                    print(f"    {i2}. {ra}")
-                    print(f"       Estado: {color}{jui}{RESET}")
-                print()
+            _secciones_pendientes_pdf(story, df_pend, meta, estilos)
         else:
-            print(f"  {VERDE}{NEGRITA}¡Todos los resultados aprobados!{RESET}\n")
+            story.append(Paragraph("Todos los resultados aprobados.", estilos["aprobado"]))
 
-        # DOCX
-        doc.add_paragraph()
-        h2 = doc.add_heading(nombre_completo.upper(), level=2)
-        h2.runs[0].font.color.rgb = RGBColor(0x1F, 0x49, 0x7D)
-
-        pend_no_aprob = len(
-            df_pend[
-                df_pend[meta.juicio].astype(str).str.lower().str.contains("no aprobado", na=False)
-            ]
-        )
-        pend_por_eval = pendientes_ap - pend_no_aprob
-        _tabla_resumen_doc(doc, total_ap, aprobados_ap, pend_por_eval, pend_no_aprob)
-
-        if pendientes_ap > 0:
-            _secciones_pendientes_doc(doc, df_pend, meta)
-        else:
-            p = doc.add_paragraph()
-            r = p.add_run("Todos los resultados aprobados.")
-            r.font.color.rgb = RGBColor(0x00, 0x70, 0x00)
-            r.bold = True
-
-    doc.save(ruta_resumen)
+    doc_pdf.build(story)
     _t_inf = time.time() - _t_inf0
     ok(f"Resumen guardado: {os.path.basename(ruta_resumen)}")
     print(f"  {AMARILLO}{NEGRITA}⏱  Generación de informe(s): {_t_inf:.1f} s{RESET}")
@@ -1462,13 +1589,13 @@ def analizar_juicios_independientes(
     numero_ficha: str,
     solo_activos: bool = False,
 ) -> None:
-    """Genera un DOCX individual por aprendiz en una subcarpeta."""
+    """Genera un PDF individual por aprendiz en una subcarpeta."""
     _t_inf0 = time.time()
     titulo("Generando reportes independientes por aprendiz")
     info(f"Procesando: {os.path.basename(ruta_excel)}")
 
-    if not DOCX_DISPONIBLE:
-        err("python-docx no disponible. Instala con: python -m pip install python-docx")
+    if not PDF_DISPONIBLE:
+        err("reportlab no disponible. Instala con: pip install reportlab")
         return
 
     nombre   = (nombre   or "").strip()
@@ -1491,6 +1618,8 @@ def analizar_juicios_independientes(
     os.makedirs(carpeta_salida, exist_ok=True)
     ok(f"Carpeta de reportes: Ficha_{numero_ficha}/Individuales_{timestamp}")
 
+    estilos = _estilos_pdf()
+
     for idx, (_, fila_ap) in enumerate(aprendices.iterrows(), 1):
         nom_ap  = str(fila_ap[meta.nombre]).strip()
         ape_ap  = str(fila_ap[meta.apellido]).strip()
@@ -1507,49 +1636,50 @@ def analizar_juicios_independientes(
         total_ap     = len(df_ap)
         aprobados_ap = len(df_aprob)
         pend_ap      = len(df_pend)
+        pend_no_aprob = len(
+            df_pend[df_pend[meta.juicio].astype(str).str.lower().str.contains("no aprobado", na=False)]
+        )
+        pend_por_eval = pend_ap - pend_no_aprob
 
         info(f"[{idx}/{total}] {nombre_completo}")
 
-        doc = DocxDocument()
-        t = doc.add_heading("Informe de Juicios de Evaluacion - Sofia Plus", level=1)
-        t.runs[0].font.color.rgb = RGBColor(0x1F, 0x49, 0x7D)
+        nombre_arch = f"{ape_ap}_{nom_ap}".replace(" ", "_") + ".pdf"
+        ruta_pdf = os.path.join(carpeta_salida, nombre_arch)
 
-        doc.add_heading("Datos del Aprendiz", level=2)
-        for lbl, val in [
-            ("Aprendiz:", nombre_completo.upper()),
-            ("Ficha:", numero_ficha),
-            ("Generado:", datetime.now().strftime("%Y-%m-%d %H:%M")),
-        ]:
-            p = doc.add_paragraph()
-            p.add_run(f"{lbl} ").bold = True
-            p.add_run(val)
-
-        doc.add_heading("Resumen", level=2)
-        pend_no_aprob = len(
-            df_pend[
-                df_pend[meta.juicio].astype(str).str.lower().str.contains("no aprobado", na=False)
-            ]
+        doc_pdf = SimpleDocTemplate(
+            ruta_pdf,
+            pagesize=letter,
+            leftMargin=2 * cm, rightMargin=2 * cm,
+            topMargin=2 * cm, bottomMargin=2 * cm,
+            title=f"Informe - {nombre_completo}",
         )
-        pend_por_eval = pend_ap - pend_no_aprob
-        _tabla_resumen_doc(doc, total_ap, aprobados_ap, pend_por_eval, pend_no_aprob)
+        story = []
+
+        story.append(Paragraph("Informe de Juicios de Evaluacion - Sofia Plus", estilos["titulo"]))
+        story.append(HRFlowable(width="100%", thickness=1.5, color=_SENA_GREEN, spaceAfter=6))
+
+        story.append(Paragraph("Datos del Aprendiz", estilos["subtitulo"]))
+        story.append(Paragraph(f'<b>Aprendiz:</b> {nombre_completo.upper()}', estilos["meta"]))
+        story.append(Paragraph(f'<b>Ficha:</b> {numero_ficha}', estilos["meta"]))
+        story.append(Paragraph(f'<b>Generado:</b> {datetime.now().strftime("%Y-%m-%d %H:%M")}', estilos["meta"]))
+        story.append(Spacer(1, 8))
+
+        story.append(Paragraph("Resumen", estilos["subtitulo"]))
+        story.append(_tabla_resumen_pdf(total_ap, aprobados_ap, pend_por_eval, pend_no_aprob))
 
         if pend_ap > 0:
-            doc.add_heading("Resultados Pendientes por Competencia", level=2)
-            _secciones_pendientes_doc(doc, df_pend, meta)
+            story.append(Paragraph("Resultados Pendientes por Competencia", estilos["subtitulo"]))
+            _secciones_pendientes_pdf(story, df_pend, meta, estilos)
         else:
-            p = doc.add_paragraph()
-            r = p.add_run("Todos los resultados aprobados.")
-            r.font.color.rgb = RGBColor(0x00, 0x70, 0x00)
-            r.bold = True
+            story.append(Paragraph("Todos los resultados aprobados.", estilos["aprobado"]))
 
-        nombre_arch = f"{ape_ap}_{nom_ap}".replace(" ", "_") + ".docx"
-        doc.save(os.path.join(carpeta_salida, nombre_arch))
+        doc_pdf.build(story)
         ok(f"Guardado: {nombre_arch}  (Pend: {pend_ap}/{total_ap})")
 
     _t_inf = time.time() - _t_inf0
     ok(f"Proceso completado — {total} archivo(s) en: {carpeta_salida}")
-    return carpeta_salida
     print(f"  {AMARILLO}{NEGRITA}⏱  Generación de informe(s): {_t_inf:.1f} s{RESET}")
+    return carpeta_salida
 
 
 # ── Helpers de análisis ───────────────────────────────────────────

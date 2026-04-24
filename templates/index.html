@@ -117,8 +117,8 @@
       <div class="form-section">
         <div class="section-label">Tipo de informe</div>
         <div class="radio-group">
-          <label><input type="radio" name="c_tipo" value="consolidado" checked> Consolidado (un DOCX)</label>
-          <label><input type="radio" name="c_tipo" value="independiente"> Independiente (un DOCX por aprendiz)</label>
+          <label><input type="radio" name="c_tipo" value="consolidado" checked> Consolidado (un PDF)</label>
+          <label><input type="radio" name="c_tipo" value="independiente"> Independiente (un PDF por aprendiz)</label>
         </div>
       </div>
 
@@ -380,8 +380,7 @@ function conectarSSE(taskId) {
       btn.href = `/api/descargar-archivo/${taskId}`;
       btn.download = ev.nombre;
       const icono = ev.es_zip ? '📦' : '📄';
-      const tipo  = ev.es_zip ? '(.zip con todos los informes)' : '(.docx)';
-      btn.textContent = `⬇ ${icono} ${ev.nombre}  ${tipo}`;
+      btn.textContent = `⬇ ${icono} ${ev.nombre}`;
       btn.classList.add('show');
       // Disparar la descarga automáticamente
       setTimeout(() => btn.click(), 400);
