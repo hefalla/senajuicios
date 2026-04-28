@@ -39,6 +39,12 @@
     .db-tab-btn.active{background:#1a5276;color:#fff;border-color:#1a5276;}
     #dashboardPanel td{padding:6px 8px;border-bottom:1px solid var(--borde);color:var(--texto);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     #dashboardPanel tr:last-child>td{border-bottom:none;}
+    .db-tog-btn{padding:6px 14px;font-size:12px;border-radius:6px;border:none;cursor:pointer;color:var(--texto-suave);background:transparent;font-weight:400;white-space:nowrap;}
+    .db-tog-todos{background:#1a5276;color:#fff;font-weight:500;}
+    .db-tog-activos{background:#1d9e75;color:#fff;font-weight:500;}
+    select:disabled{opacity:.45;cursor:not-allowed;}
+    .db-inner-tab{padding:8px 14px;font-size:12px;background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;color:var(--texto-suave);white-space:nowrap;margin-bottom:-1px;}
+    .db-inner-tab.active{color:#1a5276;border-bottom-color:#1a5276;font-weight:500;}
   </style>
 </head>
 <body>
@@ -333,27 +339,96 @@
     </div>
   </div>
 
-  <div class="db-card" style="margin-bottom:10px;">
-    <p class="db-card-title">Últimos 10 funcionarios que registraron un juicio</p>
-    <div id="dbFuncionarios"></div>
-  </div>
 
   <div class="db-card">
-    <p class="db-card-title">Avance por aprendiz</p>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem;" id="dbFiltros"></div>
-    <table style="width:100%;font-size:12px;border-collapse:collapse;table-layout:fixed;">
-      <thead>
-        <tr>
-          <th style="width:30%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Aprendiz</th>
-          <th style="width:15%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Estado</th>
-          <th style="width:8%;text-align:right;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Total</th>
-          <th style="width:9%;text-align:right;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Aprob.</th>
-          <th style="width:10%;text-align:right;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">No aprob.</th>
-          <th style="width:28%;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Progreso</th>
-        </tr>
-      </thead>
-      <tbody id="dbTbody"></tbody>
-    </table>
+    <!-- Pestañas internas -->
+    <div style="display:flex;gap:2px;border-bottom:1px solid var(--borde);margin:-1rem -1.25rem 1rem;padding:0 1.25rem;">
+      <button class="db-inner-tab active" id="dbITab0" onclick="dbSwitchInner(0)">Últimos instructores que evaluaron</button>
+      <button class="db-inner-tab" id="dbITab1" onclick="dbSwitchInner(1)">Avance por aprendiz</button>
+      <button class="db-inner-tab" id="dbITab2" onclick="dbSwitchInner(2)">Consulta por RAP</button>
+    </div>
+
+    <!-- Panel 0: Funcionarios -->
+    <div id="dbIPanel0">
+      <div id="dbFuncionarios"></div>
+    </div>
+
+    <!-- Panel 1: Avance por aprendiz -->
+    <div id="dbIPanel1" style="display:none;">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem;" id="dbFiltros"></div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse;table-layout:fixed;">
+        <thead>
+          <tr>
+            <th style="width:30%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Aprendiz</th>
+            <th style="width:15%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Estado</th>
+            <th style="width:8%;text-align:right;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Total</th>
+            <th style="width:9%;text-align:right;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Aprob.</th>
+            <th style="width:10%;text-align:right;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">No aprob.</th>
+            <th style="width:28%;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Progreso</th>
+          </tr>
+        </thead>
+        <tbody id="dbTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Panel 2: Consulta por RAP -->
+    <div id="dbIPanel2" style="display:none;">
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;">
+        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+          <label style="font-size:12px;color:var(--texto-suave);">Aprendices</label>
+          <div style="display:flex;background:var(--fondo-panel);border-radius:8px;padding:3px;gap:3px;">
+            <button class="db-tog-btn db-tog-todos" id="dbTogTodos" onclick="dbSetToggle('todos')">Todos</button>
+            <button class="db-tog-btn" id="dbTogActivos" onclick="dbSetToggle('activos')">Solo activos</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px;">
+          <label style="font-size:12px;color:var(--texto-suave);">Competencia</label>
+          <select id="dbSelComp" onchange="dbOnCompChange()" disabled>
+            <option value="">— Carga el dashboard primero —</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px;">
+          <label style="font-size:12px;color:var(--texto-suave);">Resultado de aprendizaje</label>
+          <select id="dbSelRA" onchange="dbRenderConsulta()" disabled>
+            <option value="">— Selecciona primero una competencia —</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="dbConsultaResult" style="display:none;">
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1rem;">
+          <div class="db-mc"><p class="db-lbl">Evaluados</p><p class="db-val" id="dbCmEval">—</p></div>
+          <div class="db-mc"><p class="db-lbl">Aprobados</p><p class="db-val" style="color:#1d9e75" id="dbCmAprob">—</p></div>
+          <div class="db-mc"><p class="db-lbl">No aprobados</p><p class="db-val" style="color:#e24b4a" id="dbCmNoAprob">—</p></div>
+          <div class="db-mc"><p class="db-lbl">Sin evaluar</p><p class="db-val" style="color:#ba7517" id="dbCmSinEval">—</p></div>
+        </div>
+
+        <p style="font-size:12px;font-weight:500;color:var(--texto);margin-bottom:.5rem;">Aprendices evaluados</p>
+        <table style="width:100%;font-size:12px;border-collapse:collapse;table-layout:fixed;margin-bottom:1rem;">
+          <thead><tr>
+            <th style="width:28%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Aprendiz</th>
+            <th style="width:16%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Estado</th>
+            <th style="width:14%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Juicio</th>
+            <th style="width:26%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Instructor</th>
+            <th style="width:16%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Fecha</th>
+          </tr></thead>
+          <tbody id="dbCmTbEval"></tbody>
+        </table>
+
+        <p style="font-size:12px;font-weight:500;color:var(--texto);margin-bottom:.5rem;">Sin evaluar</p>
+        <table style="width:100%;font-size:12px;border-collapse:collapse;table-layout:fixed;margin-bottom:1rem;">
+          <thead><tr>
+            <th style="width:50%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Aprendiz</th>
+            <th style="width:50%;text-align:left;font-size:11px;font-weight:500;color:var(--texto-suave);border-bottom:1px solid var(--borde);padding:6px 8px;">Estado</th>
+          </tr></thead>
+          <tbody id="dbCmTbSinEval"></tbody>
+        </table>
+      </div>
+
+      <div id="dbConsultaPlaceholder" style="font-size:12px;color:var(--texto-suave);padding:.75rem 0;text-align:center;">
+        Carga el dashboard para habilitar esta consulta
+      </div>
+    </div>
   </div>
 
 </div><!-- /dashboardPanel -->
@@ -373,6 +448,11 @@ function switchTab(idx) {
     b.classList.toggle('active', i === idx));
   document.querySelectorAll('.tab-content').forEach((t, i) =>
     t.classList.toggle('active', i === idx));
+  const panelRight = document.querySelector('.panel-right');
+  if (panelRight) panelRight.style.display = idx === 3 ? 'none' : '';
+  if (idx !== 3) {
+    document.getElementById('dashboardPanel').style.display = 'none';
+  }
 }
 
 /* ── Log ───────────────────────────────────────────────────────── */
@@ -774,8 +854,8 @@ async function cargarDashboard() {
     if (!r.ok) { alert(d.error || 'Error al cargar el dashboard.'); return; }
     _dbData = d;
     _dbFiltro = 'todos';
-    _dbExpanded = {};
     _renderDashboard();
+    await _dbCargarConsulta(ficha);
     document.getElementById('dashboardPanel').style.display = 'block';
     document.getElementById('panel-right') && (document.getElementById('panel-right').style.display = 'none');
     document.getElementById('dashboardPanel').scrollIntoView({behavior:'smooth', block:'start'});
@@ -910,6 +990,110 @@ function _renderTablaAp() {
   });
 
   document.getElementById('dbTbody').innerHTML = html;
+}
+
+/* ── Consulta por competencia y RA ─────────────────────────────── */
+let _dbConsultaData = null;
+let _dbModoConsulta = 'todos';
+
+function dbSetToggle(m) {
+  _dbModoConsulta = m;
+  document.getElementById('dbTogTodos').className = 'db-tog-btn' + (m === 'todos' ? ' db-tog-todos' : '');
+  document.getElementById('dbTogActivos').className = 'db-tog-btn' + (m === 'activos' ? ' db-tog-activos' : '');
+  const ficha = document.getElementById('db_ficha').value.trim();
+  if (ficha && _dbConsultaData) _dbCargarConsulta(ficha).then(dbRenderConsulta);
+  else dbRenderConsulta();
+}
+
+async function _dbCargarConsulta(ficha) {
+  const soloActivos = _dbModoConsulta === 'activos';
+  const r = await fetch(`/api/consulta_ra/${encodeURIComponent(ficha)}?solo_activos=${soloActivos}`);
+  if (!r.ok) return;
+  _dbConsultaData = await r.json();
+  const selComp = document.getElementById('dbSelComp');
+  selComp.innerHTML = '<option value="">— Selecciona una competencia —</option>'
+    + _dbConsultaData.competencias.map((c, i) =>
+        `<option value="${i}">${c.competencia}</option>`
+      ).join('');
+  selComp.disabled = false;
+  document.getElementById('dbSelRA').disabled = true;
+  document.getElementById('dbSelRA').innerHTML = '<option value="">— Selecciona primero una competencia —</option>';
+  document.getElementById('dbConsultaPlaceholder').textContent = 'Selecciona una competencia y un resultado de aprendizaje';
+  document.getElementById('dbConsultaPlaceholder').style.display = 'block';
+  document.getElementById('dbConsultaResult').style.display = 'none';
+}
+
+function dbOnCompChange() {
+  const ci = document.getElementById('dbSelComp').value;
+  const selRA = document.getElementById('dbSelRA');
+  document.getElementById('dbConsultaResult').style.display = 'none';
+  document.getElementById('dbConsultaPlaceholder').style.display = 'block';
+  document.getElementById('dbConsultaPlaceholder').textContent = 'Selecciona un resultado de aprendizaje';
+  if (ci === '') { selRA.disabled = true; selRA.innerHTML = '<option value="">— Selecciona primero una competencia —</option>'; return; }
+  const comp = _dbConsultaData.competencias[parseInt(ci)];
+  selRA.innerHTML = '<option value="">— Selecciona un resultado —</option>'
+    + comp.ras.map((r, i) => `<option value="${i}">${r.ra}</option>`).join('');
+  selRA.disabled = false;
+}
+
+function dbRenderConsulta() {
+  const ci = document.getElementById('dbSelComp').value;
+  const ri = document.getElementById('dbSelRA').value;
+  if (ci === '' || ri === '') return;
+
+  const ORDEN_ESTADO = ['EN FORMACION','CONDICIONADO','APLAZADO','TRASLADADO','RETIRO VOLUNTARIO','CANCELADO'];
+  const ACTIVOS = ['EN FORMACION', 'CONDICIONADO'];
+  const ESTADO_BADGE = {'EN FORMACION':'db-badge-b','CONDICIONADO':'db-badge-a'};
+  const ESTADO_LABEL = {
+    'EN FORMACION':'En formación','CONDICIONADO':'Condicionado',
+    'APLAZADO':'Aplazado','RETIRO VOLUNTARIO':'Retiro vol.',
+    'CANCELADO':'Cancelado','TRASLADADO':'Trasladado',
+  };
+
+  const d = _dbConsultaData.competencias[parseInt(ci)].ras[parseInt(ri)];
+  const filtrar = a => _dbModoConsulta === 'todos' || ACTIVOS.includes(a.estado);
+
+  const evaluados   = d.evaluados.filter(filtrar);
+  const sinEvaluar  = d.sin_evaluar.filter(filtrar);
+  const aprobados   = evaluados.filter(a => a.juicio === 'APROBADO').length;
+  const noAprobados = evaluados.filter(a => a.juicio === 'NO APROBADO').length;
+
+  document.getElementById('dbCmEval').textContent    = evaluados.length;
+  document.getElementById('dbCmAprob').textContent   = aprobados;
+  document.getElementById('dbCmNoAprob').textContent = noAprobados;
+  document.getElementById('dbCmSinEval').textContent = sinEvaluar.length;
+
+  const eBadge = e => `<span class="db-badge ${ESTADO_BADGE[e]||'db-badge-gr'}">${ESTADO_LABEL[e]||e}</span>`;
+
+  document.getElementById('dbCmTbEval').innerHTML = evaluados.length === 0
+    ? `<tr><td colspan="5" style="text-align:center;color:var(--texto-suave);padding:12px;font-size:12px;">Sin registros de evaluación</td></tr>`
+    : evaluados.map(a => `<tr>
+        <td style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.nombre}</td>
+        <td>${eBadge(a.estado)}</td>
+        <td><span class="db-badge ${a.juicio==='APROBADO'?'db-badge-g':'db-badge-r'}">${a.juicio==='APROBADO'?'Aprobado':'No aprobado'}</span></td>
+        <td style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.instructor}</td>
+        <td style="white-space:nowrap;">${a.fecha}</td>
+      </tr>`).join('');
+
+  const sinEvalSorted = [...sinEvaluar].sort((a,b) =>
+    ORDEN_ESTADO.indexOf(a.estado) - ORDEN_ESTADO.indexOf(b.estado));
+
+  document.getElementById('dbCmTbSinEval').innerHTML = sinEvalSorted.length === 0
+    ? `<tr><td colspan="2" style="text-align:center;color:var(--texto-suave);padding:12px;font-size:12px;">Todos los aprendices tienen este resultado evaluado.</td></tr>`
+    : sinEvalSorted.map(a => `<tr>
+        <td style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.nombre}</td>
+        <td>${eBadge(a.estado)}</td>
+      </tr>`).join('');
+
+  document.getElementById('dbConsultaPlaceholder').style.display = 'none';
+  document.getElementById('dbConsultaResult').style.display = 'block';
+}
+
+function dbSwitchInner(idx) {
+  [0, 1, 2].forEach(i => {
+    document.getElementById(`dbITab${i}`).classList.toggle('active', i === idx);
+    document.getElementById(`dbIPanel${i}`).style.display = i === idx ? '' : 'none';
+  });
 }
 
 </script>

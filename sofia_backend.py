@@ -1896,6 +1896,81 @@ def generar_datos_dashboard(numero_ficha: str) -> dict:
     }
 
 
+def generar_consulta_ra(numero_ficha: str, solo_activos: bool = False) -> dict:
+    """
+    Devuelve la estructura de competencias y RAs con datos de evaluación
+    para la funcionalidad de consulta por resultado de aprendizaje.
+    """
+    ruta_excel = buscar_excel_ficha(numero_ficha)
+    if not ruta_excel:
+        return {"error": f"No hay reporte descargado para la ficha {numero_ficha}."}
+
+    import re as _re
+
+    def _limpiar(s):
+        return _re.sub(r"^\d+\s+-\s+", "", str(s)).strip().capitalize()
+
+    def _limpiar_func(s):
+        return _re.sub(r"^CC\s+\d+\s+-\s+", "", str(s)).strip().title()
+
+    df = pd.read_excel(ruta_excel, header=12)
+    df.columns = [
+        "tipo_doc", "num_doc", "nombre", "apellidos",
+        "estado", "competencia", "ra", "juicio",
+        "_", "fecha", "funcionario",
+    ]
+    for col in ["nombre", "apellidos", "estado", "competencia", "ra", "juicio", "funcionario"]:
+        df[col] = df[col].astype(str).str.strip()
+    df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
+
+    ACTIVOS = ["EN FORMACION", "CONDICIONADO"]
+    if solo_activos:
+        df = df[df["estado"].isin(ACTIVOS)]
+
+    competencias_out = []
+
+    for comp_raw, df_comp in df.groupby("competencia", sort=False):
+        comp_nombre = _limpiar(comp_raw)
+        ras_out = []
+
+        for ra_raw, df_ra in df_comp.groupby("ra", sort=False):
+            ra_nombre = _limpiar(ra_raw)
+
+            evaluados = []
+            sin_evaluar = []
+
+            for num_doc, df_ap in df_ra.groupby("num_doc"):
+                nombre_ap = f"{df_ap['nombre'].iloc[0]} {df_ap['apellidos'].iloc[0]}".title()
+                estado_ap = df_ap["estado"].iloc[0]
+
+                fila_eval = df_ap[df_ap["juicio"].isin(["APROBADO", "NO APROBADO"])]
+
+                if not fila_eval.empty:
+                    fila = fila_eval.sort_values("fecha", ascending=False).iloc[0]
+                    evaluados.append({
+                        "nombre":      nombre_ap,
+                        "estado":      estado_ap,
+                        "juicio":      fila["juicio"],
+                        "instructor":  _limpiar_func(fila["funcionario"]),
+                        "fecha":       fila["fecha"].strftime("%d/%m/%Y %H:%M") if pd.notna(fila["fecha"]) else "—",
+                    })
+                else:
+                    sin_evaluar.append({"nombre": nombre_ap, "estado": estado_ap})
+
+            ras_out.append({
+                "ra":         ra_nombre,
+                "evaluados":  evaluados,
+                "sin_evaluar": sin_evaluar,
+            })
+
+        competencias_out.append({
+            "competencia": comp_nombre,
+            "ras":         ras_out,
+        })
+
+    return {"competencias": competencias_out}
+
+
 # ══════════════════════════════════════════════════════════════════
 #  INTERFAZ GRÁFICA (tkinter)
 # ══════════════════════════════════════════════════════════════════

@@ -503,6 +503,16 @@ def api_dashboard(numero_ficha: str):
     return jsonify(datos)
 
 
+@app.route("/api/consulta_ra/<numero_ficha>")
+def api_consulta_ra(numero_ficha: str):
+    """Devuelve competencias y RAs con datos de evaluación para consulta interactiva."""
+    solo_activos = request.args.get("solo_activos", "false").lower() == "true"
+    datos = bk.generar_consulta_ra(numero_ficha.strip(), solo_activos=solo_activos)
+    if "error" in datos:
+        return jsonify(datos), 404
+    return jsonify(datos)
+
+
 @app.route("/api/estado")
 def api_estado():
     """Ping para verificar que el servidor está activo."""
