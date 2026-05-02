@@ -276,19 +276,19 @@
 <!-- ── Panel Dashboard (ocupa ancho completo) ────────────────── -->
 <div id="dashboardPanel" style="display:none; grid-column:1/-1; margin-top:1rem;">
 
-  <div id="dbHeader" style="background:#1a5276;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem;color:#fff;">
-    <div style="font-size:15px;font-weight:500;" id="dbTitulo">—</div>
-    <div style="font-size:11px;opacity:.7;margin-top:3px;" id="dbSubtitulo">—</div>
+  <div id="dbHeader" class="db-header">
+    <div class="db-header-titulo" id="dbTitulo">—</div>
+    <div class="db-header-subtitulo" id="dbSubtitulo">—</div>
   </div>
 
-  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;" id="dbMetrics">
+  <div class="db-metrics" id="dbMetrics">
     <div class="db-mc"><p class="db-lbl">Total aprendices</p><p class="db-val" id="dbTotalAp">—</p></div>
     <div class="db-mc"><p class="db-lbl">Aprendices activos</p><p class="db-val" style="color:#185FA5" id="dbActivos">—</p></div>
     <div class="db-mc"><p class="db-lbl">RA no aprobados</p><p class="db-val" style="color:#e24b4a" id="dbRaNoAprob">—</p></div>
     <div class="db-mc"><p class="db-lbl">Competencias sin evaluar</p><p class="db-val" style="color:#ba7517" id="dbCompSinEvaluar">—</p></div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+  <div class="db-charts-row">
     <div class="db-card">
       <p class="db-card-title">Estado de aprendices</p>
       <div id="dbLegEstados" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:11px;color:var(--texto-suave);"></div>
@@ -303,12 +303,18 @@
 
 
   <div class="db-card">
-    <!-- Pestañas internas -->
-    <div style="display:flex;gap:2px;border-bottom:1px solid var(--borde);margin:-1rem -1.25rem 1rem;padding:0 1.25rem;">
+    <!-- Pestañas internas — desktop -->
+    <div class="db-inner-tabs-nav">
       <button class="db-inner-tab active" id="dbITab0" onclick="dbSwitchInner(0)">Últimos instructores que evaluaron</button>
       <button class="db-inner-tab" id="dbITab1" onclick="dbSwitchInner(1)">Avance por aprendiz</button>
       <button class="db-inner-tab" id="dbITab2" onclick="dbSwitchInner(2)">Consulta por RAP</button>
     </div>
+    <!-- Selector desplegable — móvil -->
+    <select class="db-inner-tabs-select" id="dbInnerSelect" onchange="dbSwitchInner(parseInt(this.value))">
+      <option value="0">Últimos instructores que evaluaron</option>
+      <option value="1">Avance por aprendiz</option>
+      <option value="2">Consulta por RAP</option>
+    </select>
 
     <!-- Panel 0: Funcionarios -->
     <div id="dbIPanel0">
@@ -317,7 +323,7 @@
 
     <!-- Panel 1: Avance por aprendiz -->
     <div id="dbIPanel1" style="display:none;">
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem;" id="dbFiltros"></div>
+      <div class="db-filtros-wrap" id="dbFiltros" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem;"></div>
       <table style="width:100%;font-size:12px;border-collapse:collapse;table-layout:fixed;">
         <thead>
           <tr>
@@ -335,22 +341,22 @@
 
     <!-- Panel 2: Consulta por RAP -->
     <div id="dbIPanel2" style="display:none;">
-      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;">
-        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
-          <label style="font-size:12px;color:var(--texto-suave);">Aprendices</label>
-          <div style="display:flex;background:var(--fondo-panel);border-radius:8px;padding:3px;gap:3px;">
+      <div class="db-rap-controls">
+        <div class="db-rap-toggle">
+          <label class="db-rap-label">Aprendices</label>
+          <div class="db-rap-toggle-btns">
             <button class="db-tog-btn db-tog-todos" id="dbTogTodos" onclick="dbSetToggle('todos')">Todos</button>
             <button class="db-tog-btn" id="dbTogActivos" onclick="dbSetToggle('activos')">Solo activos</button>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px;">
-          <label style="font-size:12px;color:var(--texto-suave);">Competencia</label>
+        <div class="db-rap-field">
+          <label class="db-rap-label">Competencia</label>
           <select id="dbSelComp" onchange="dbOnCompChange()" disabled>
             <option value="">— Carga el dashboard primero —</option>
           </select>
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px;">
-          <label style="font-size:12px;color:var(--texto-suave);">Resultado de aprendizaje</label>
+        <div class="db-rap-field">
+          <label class="db-rap-label">Resultado de aprendizaje</label>
           <select id="dbSelRA" onchange="dbRenderConsulta()" disabled>
             <option value="">— Selecciona primero una competencia —</option>
           </select>
@@ -358,7 +364,7 @@
       </div>
 
       <div id="dbConsultaResult" style="display:none;">
-        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1rem;">
+        <div class="db-consulta-metrics">
           <div class="db-mc"><p class="db-lbl">Evaluados</p><p class="db-val" id="dbCmEval">—</p></div>
           <div class="db-mc"><p class="db-lbl">Aprobados</p><p class="db-val" style="color:#1d9e75" id="dbCmAprob">—</p></div>
           <div class="db-mc"><p class="db-lbl">No aprobados</p><p class="db-val" style="color:#e24b4a" id="dbCmNoAprob">—</p></div>

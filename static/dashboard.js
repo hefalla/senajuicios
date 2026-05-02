@@ -539,12 +539,12 @@ function _renderTablaAp() {
     const el  = DB_ESTADO_LABEL[ap.estado] || ap.estado;
 
     html += `<tr>
-      <td style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ap.nombre}</td>
-      <td><span class="db-badge ${bc}">${el}</span></td>
-      <td style="text-align:right;">${ap.total_ra}</td>
-      <td style="text-align:right;color:#1d9e75;font-weight:500;">${ap.aprobados}</td>
-      <td style="text-align:right;color:${ap.no_aprobados>0?'#e24b4a':'var(--texto-suave)'};">${ap.no_aprobados}</td>
-      <td>
+      <td>${ap.nombre}</td>
+      <td data-label="Estado"><span class="db-badge ${bc}">${el}</span></td>
+      <td data-label="Total" style="text-align:right;">${ap.total_ra}</td>
+      <td data-label="Aprobados" style="text-align:right;color:#1d9e75;font-weight:500;">${ap.aprobados}</td>
+      <td data-label="No aprob." style="text-align:right;color:${ap.no_aprobados>0?'#e24b4a':'var(--texto-suave)'};">${ap.no_aprobados}</td>
+      <td data-label="Progreso">
         <div style="font-size:10px;color:var(--texto-suave);">${pct}%</div>
         <div class="db-pb"><div class="db-pf" style="width:${pct}%"></div></div>
       </td>
@@ -630,11 +630,11 @@ function dbRenderConsulta() {
   document.getElementById('dbCmTbEval').innerHTML = evaluados.length === 0
     ? `<tr><td colspan="5" style="text-align:center;color:var(--texto-suave);padding:12px;font-size:12px;">Sin registros de evaluación</td></tr>`
     : evaluados.map(a => `<tr>
-        <td style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.nombre}</td>
-        <td>${eBadge(a.estado)}</td>
-        <td><span class="db-badge ${a.juicio==='APROBADO'?'db-badge-g':'db-badge-r'}">${a.juicio==='APROBADO'?'Aprobado':'No aprobado'}</span></td>
-        <td style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.instructor}</td>
-        <td style="white-space:nowrap;">${a.fecha}</td>
+        <td>${a.nombre}</td>
+        <td data-label="Estado">${eBadge(a.estado)}</td>
+        <td data-label="Juicio"><span class="db-badge ${a.juicio==='APROBADO'?'db-badge-g':'db-badge-r'}">${a.juicio==='APROBADO'?'Aprobado':'No aprobado'}</span></td>
+        <td data-label="Instructor">${a.instructor}</td>
+        <td data-label="Fecha">${a.fecha}</td>
       </tr>`).join('');
 
   const sinEvalSorted = [...sinEvaluar].sort((a,b) =>
@@ -643,9 +643,13 @@ function dbRenderConsulta() {
   document.getElementById('dbCmTbSinEval').innerHTML = sinEvalSorted.length === 0
     ? `<tr><td colspan="2" style="text-align:center;color:var(--texto-suave);padding:12px;font-size:12px;">Todos los aprendices tienen este resultado evaluado.</td></tr>`
     : sinEvalSorted.map(a => `<tr>
-        <td style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.nombre}</td>
-        <td>${eBadge(a.estado)}</td>
+        <td>${a.nombre}</td>
+        <td data-label="Estado">${eBadge(a.estado)}</td>
       </tr>`).join('');
+
+  // Marcar tabla sin evaluar para layout de 2 columnas en móvil
+  const tblSinEval = document.getElementById('dbCmTbSinEval').closest('table');
+  if (tblSinEval) tblSinEval.classList.add('tbl-2col');
 
   document.getElementById('dbConsultaPlaceholder').style.display = 'none';
   document.getElementById('dbConsultaResult').style.display = 'block';
@@ -656,4 +660,6 @@ function dbSwitchInner(idx) {
     document.getElementById(`dbITab${i}`).classList.toggle('active', i === idx);
     document.getElementById(`dbIPanel${i}`).style.display = i === idx ? '' : 'none';
   });
+  const sel = document.getElementById('dbInnerSelect');
+  if (sel) sel.value = idx;
 }
