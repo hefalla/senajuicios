@@ -634,8 +634,23 @@ input[type="radio"], input[type="checkbox"] {
 
   main { padding: 10px; gap: 10px; }
 
-  .tab-nav { border-radius: var(--radio-sm) var(--radio-sm) 0 0; }
-  .tab-btn { padding: 8px 6px; font-size: .72rem; flex-direction: column; gap: 2px; }
+  .tab-nav {
+    border-radius: var(--radio-sm);
+    flex-wrap: wrap;
+    padding: 3px;
+    gap: 3px;
+  }
+  .tab-btn {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+    padding: 8px 4px;
+    font-size: .72rem;
+    flex-direction: column;
+    gap: 2px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+  }
   .tab-icon { font-size: .9rem; }
   .tab-content { padding: 16px 12px; }
 
@@ -716,9 +731,8 @@ input[type="radio"], input[type="checkbox"] {
   /* Main sin padding lateral */
   main { padding: 6px; gap: 8px; }
 
-  /* Tabs: dos por fila */
-  .tab-nav { flex-wrap: wrap; border-radius: var(--radio-sm); padding: 3px; gap: 3px; }
-  .tab-btn { flex: 1 1 calc(50% - 4px); min-width: 0; padding: 7px 4px; font-size: .68rem; }
+  /* Tabs: ya vienen en 2 columnas desde el breakpoint de 480px; aquí solo achicamos un poco más */
+  .tab-btn { padding: 7px 4px; font-size: .68rem; }
 
   /* Inner tabs — mantener select, ajustar tamaño */
   .db-inner-tabs-nav    { display: none; }

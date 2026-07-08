@@ -264,13 +264,46 @@ def _edge_disponible() -> bool:
     return False
 
 
+def _driver_version_valida(driver_path: str) -> bool:
+    """Ejecuta 'driver --version' para confirmar que el binario cacheado
+    sigue siendo utilizable (no corrupto, no borrado a medias)."""
+    import subprocess
+    try:
+        resultado = subprocess.run(
+            [driver_path, "--version"],
+            capture_output=True, timeout=5, text=True,
+        )
+        return resultado.returncode == 0
+    except Exception:
+        return False
+
+
 def _obtener_driver_path(cache_file: str, manager_fn) -> str:
-    cached = _leer_archivo(cache_file)
-    if cached and os.path.exists(cached):
-        return cached
-    ruta = manager_fn().install()
-    _escribir_archivo(cache_file, ruta)
-    return ruta
+    """Obtiene la ruta del driver (chromedriver/edgedriver).
+
+    IMPORTANTE: NO reutilizamos ciegamente el driver cacheado. Chrome/Edge
+    se autoactualizan en segundo plano, así que aunque el archivo exista,
+    puede haber quedado desincronizado con la versión actual del navegador
+    (sintoma tipico: "session not created: This version of ChromeDriver
+    only supports Chrome version X"). Por eso SIEMPRE dejamos que
+    webdriver-manager verifique la version del navegador instalado y
+    descargue el driver correspondiente; webdriver-manager ya mantiene su
+    propio cache interno en disco, asi que esto no vuelve a descargar el
+    binario si ya es la version correcta -- solo evita servir una version
+    vieja "congelada" por nuestro propio archivo de cache.
+    """
+    try:
+        ruta = manager_fn().install()
+        _escribir_archivo(cache_file, ruta)
+        return ruta
+    except Exception as e:
+        # Si no hay red o falla webdriver-manager, como ultimo recurso
+        # intentamos usar el driver cacheado (mejor eso que nada).
+        cached = _leer_archivo(cache_file)
+        if cached and os.path.exists(cached) and _driver_version_valida(cached):
+            info(f"No se pudo verificar/actualizar el driver ({e}); usando cache local.")
+            return cached
+        raise
 
 
 def _aplicar_opciones_comunes(opts) -> None:
