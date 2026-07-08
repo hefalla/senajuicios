@@ -419,7 +419,7 @@ def configurar_driver():
     # bien por debajo de esos 120s para que salte TimeoutException (que SÍ
     # sabemos capturar) antes de llegar al límite duro del cliente HTTP.
     try:
-        driver.set_page_load_timeout(45)
+        driver.set_page_load_timeout(25)
     except Exception:
         pass
 
@@ -672,12 +672,16 @@ def iniciar_sesion(driver, usuario: str, contrasena: str) -> None:
     try:
         driver.get(URL_LOGIN)
     except TimeoutException:
-        # El evento 'load' completo no llegó a tiempo (recursos externos lentos,
-        # portal caído, o red pobre desde el servidor). No es necesariamente un
-        # fallo total: seguimos, porque el DOM principal (login) puede ya estar
-        # listo aunque algún tracker/imagen secundaria siga cargando.
-        info("La página tardó en terminar de cargar por completo; continuando "
-             "de todas formas (puede que el formulario ya esté disponible).")
+        # Primer intento lento (típico: SSO/balanceador "frío"). Reintentamos
+        # una sola vez -- si el portal está realmente caído, esto fallará
+        # rápido también y seguimos sin bloquear más tiempo del necesario.
+        info("La carga inicial tardó más de 25s; reintentando una vez ...")
+        try:
+            driver.get(URL_LOGIN)
+        except TimeoutException:
+            info("Segundo intento tampoco terminó de cargar por completo; "
+                 "continuando de todas formas (puede que el formulario ya "
+                 "esté disponible).")
 
     # Esperar solo hasta que aparezca cualquier input (señal mínima de carga)
     try:
