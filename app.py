@@ -329,6 +329,13 @@ def _mensaje_error(ex: Exception) -> str:
         return "No se pudo abrir el popup de fichas. Intenta de nuevo."
     if "consultar_fallido" in txt:
         return "No se pudo hacer clic en 'Consultar'. Intenta de nuevo."
+    if "read timed out" in txt or "readtimeouterror" in txt:
+        print(f"[DEBUG timeout navegador] {str(ex)}")
+        return (
+            "⚠️ El portal Sofía Plus tardó demasiado en responder (más de 2 minutos) "
+            "y el navegador se quedó esperando. Puede ser el portal, o la conexión "
+            "del servidor hacia SENA. Intenta de nuevo en unos minutos."
+        )
     if "chrome" in txt or "driver" in txt or "webdriver" in txt:
         print(f"[DEBUG navegador] {str(ex)}")
         return "Problema con el navegador. Asegúrate de tener Chrome o Edge instalado y actualizado."

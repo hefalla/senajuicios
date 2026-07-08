@@ -411,6 +411,18 @@ def configurar_driver():
     # Guardar la carpeta temporal en el driver para que descargar_excel la use
     driver._sofia_tmp_dir = carpeta_tmp
     info(f"Carpeta de descarga temporal: {carpeta_tmp}")
+
+    # IMPORTANTE: el cliente HTTP interno de Selenium (Python -> chromedriver)
+    # tiene un timeout fijo de 120s (ChromiumRemoteConnection). Si driver.get()
+    # tarda más que eso (portal lento/caido o Chrome colgado en la VM), Selenium
+    # lanza un ReadTimeoutError feo e inmanejable. Ponemos un page_load_timeout
+    # bien por debajo de esos 120s para que salte TimeoutException (que SÍ
+    # sabemos capturar) antes de llegar al límite duro del cliente HTTP.
+    try:
+        driver.set_page_load_timeout(45)
+    except Exception:
+        pass
+
     return driver
 
 
@@ -657,7 +669,15 @@ def _verificar_portal_disponible(driver) -> None:
 def iniciar_sesion(driver, usuario: str, contrasena: str) -> None:
     titulo("PASO 1: Inicio de sesión en Sofía Plus")
     info("Cargando portal ...")
-    driver.get(URL_LOGIN)
+    try:
+        driver.get(URL_LOGIN)
+    except TimeoutException:
+        # El evento 'load' completo no llegó a tiempo (recursos externos lentos,
+        # portal caído, o red pobre desde el servidor). No es necesariamente un
+        # fallo total: seguimos, porque el DOM principal (login) puede ya estar
+        # listo aunque algún tracker/imagen secundaria siga cargando.
+        info("La página tardó en terminar de cargar por completo; continuando "
+             "de todas formas (puede que el formulario ya esté disponible).")
 
     # Esperar solo hasta que aparezca cualquier input (señal mínima de carga)
     try:
