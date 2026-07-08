@@ -45,6 +45,28 @@ _task_lock = threading.Lock()
 _TASK_TTL = 3600               # segundos antes de limpiar tarea antigua
 
 
+def _cerrar_driver_forzado(driver) -> None:
+    """
+    Intenta un cierre normal del driver; si falla (navegador colgado /
+    sin respuesta / conexión rota), mata el proceso a la fuerza para
+    no dejar Chromium huérfano consumiendo RAM indefinidamente.
+    """
+    try:
+        driver.quit()
+        return
+    except Exception:
+        pass
+
+    # quit() falló: forzar el cierre del proceso subyacente.
+    try:
+        proc = getattr(getattr(driver, "service", None), "process", None)
+        if proc:
+            proc.kill()      # SIGKILL al chromedriver, que se lleva a chromium
+            proc.wait(timeout=5)
+    except Exception:
+        pass
+
+
 def _new_task(task_id: str) -> dict:
     task = {
         "id":      task_id,
@@ -177,10 +199,7 @@ def _run_descargar(task_id: str, usuario: str, contrasena: str, numero_ficha: st
             _fin(task, False, _mensaje_error(ex))
         finally:
             if driver:
-                try:
-                    driver.quit()
-                except Exception:
-                    pass
+                _cerrar_driver_forzado(driver)
 
 
 def _run_consultar(
@@ -300,10 +319,7 @@ def _run_completo(
             _fin(task, False, _mensaje_error(ex))
         finally:
             if driver:
-                try:
-                    driver.quit()
-                except Exception:
-                    pass
+                _cerrar_driver_forzado(driver)
 
 
 def _mensaje_error(ex: Exception) -> str:
