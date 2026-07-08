@@ -80,7 +80,7 @@ function setSpinner(on) {
 }
 
 /* ── Botones y bloqueo ─────────────────────────────────────────── */
-const allBtns = ['btn_descargar', 'btn_consultar', 'btn_completo'];
+const allBtns = ['btn_descargar', 'btn_consultar'];
 
 function lockUI() {
   ocupado = true;
@@ -459,8 +459,9 @@ function _renderDashboard() {
 
   document.getElementById('dbTitulo').textContent =
     `Juicios evaluativos — Ficha ${m.ficha}`;
+  const horaSufijo = m.hora_descarga && m.hora_descarga !== '—' ? ` · ${m.hora_descarga}` : '';
   document.getElementById('dbSubtitulo').textContent =
-    `${m.denominacion} · ${m.regional} · ${m.centro} · Reporte: ${m.fecha_reporte}`;
+    `${m.denominacion} · ${m.regional} · ${m.centro} · Reporte: ${m.fecha_reporte}${horaSufijo}`;
 
   document.getElementById('dbTotalAp').textContent        = d.total_aprendices;
   document.getElementById('dbActivos').textContent         = d.aprendices_activos;

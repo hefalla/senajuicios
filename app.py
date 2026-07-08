@@ -50,21 +50,30 @@ def _cerrar_driver_forzado(driver) -> None:
     Intenta un cierre normal del driver; si falla (navegador colgado /
     sin respuesta / conexión rota), mata el proceso a la fuerza para
     no dejar Chromium huérfano consumiendo RAM indefinidamente.
+
+    También elimina la carpeta temporal de descargas (_tmp_xxxxx) creada
+    por configurar_driver(), sin importar en qué paso haya fallado el
+    proceso (login, navegación, búsqueda de ficha, etc.). Antes solo se
+    limpiaba dentro de descargar_excel(), así que si el proceso fallaba
+    antes de llegar ahí (credenciales inválidas, portal caído, ficha no
+    encontrada...) la carpeta quedaba huérfana en el servidor.
     """
+    carpeta_tmp = getattr(driver, "_sofia_tmp_dir", "")
+
     try:
         driver.quit()
-        return
     except Exception:
-        pass
+        # quit() falló: forzar el cierre del proceso subyacente.
+        try:
+            proc = getattr(getattr(driver, "service", None), "process", None)
+            if proc:
+                proc.kill()      # SIGKILL al chromedriver, que se lleva a chromium
+                proc.wait(timeout=5)
+        except Exception:
+            pass
 
-    # quit() falló: forzar el cierre del proceso subyacente.
-    try:
-        proc = getattr(getattr(driver, "service", None), "process", None)
-        if proc:
-            proc.kill()      # SIGKILL al chromedriver, que se lleva a chromium
-            proc.wait(timeout=5)
-    except Exception:
-        pass
+    if carpeta_tmp:
+        bk._limpiar_tmp(carpeta_tmp, carpeta_tmp)
 
 
 def _new_task(task_id: str) -> dict:
@@ -649,7 +658,24 @@ def api_explorar():
 #  PUNTO DE ENTRADA
 # ══════════════════════════════════════════════════════════════════
 
+def _limpiar_temporales_huerfanas() -> None:
+    """Elimina carpetas _tmp_xxxxx que hayan quedado de una ejecución
+    anterior interrumpida abruptamente (ej. el proceso murió antes de
+    llegar al bloque finally que limpia normalmente cada descarga)."""
+    try:
+        patron = os.path.join(bk.cfg.carpeta_descarga, "_tmp_*")
+        huerfanas = glob.glob(patron)
+        for carpeta in huerfanas:
+            if os.path.isdir(carpeta):
+                bk._limpiar_tmp(carpeta, carpeta)
+        if huerfanas:
+            print(f"  🧹 {len(huerfanas)} carpeta(s) temporal(es) huérfana(s) eliminada(s) al iniciar.")
+    except Exception as e:
+        print(f"  ⚠ No se pudieron limpiar carpetas temporales huérfanas: {e}")
+
+
 if __name__ == "__main__":
+    _limpiar_temporales_huerfanas()
     port = int(os.environ.get("PORT", 5000))
     host = os.environ.get("HOST", "127.0.0.1")
     print(f"\n  🌿 Sofía Plus — Servidor web corriendo en http://{host}:{port}\n")

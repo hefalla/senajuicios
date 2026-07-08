@@ -1805,6 +1805,19 @@ def buscar_excel_ficha(numero_ficha: str) -> Optional[str]:
 #  DASHBOARD
 # ══════════════════════════════════════════════════════════════════
 
+def _hora_guardado_archivo(ruta: str) -> str:
+    """Hora local en la que el archivo del reporte quedó guardado en disco
+    (ya sea porque el bot lo descargó o porque el usuario lo subió
+    manualmente), en formato 12h en español, ej. '10:32 a. m.'."""
+    try:
+        dt = datetime.fromtimestamp(os.path.getmtime(ruta))
+        hora12 = dt.strftime("%I:%M").lstrip("0") or "12:00"
+        sufijo = "a. m." if dt.hour < 12 else "p. m."
+        return f"{hora12} {sufijo}"
+    except Exception:
+        return "—"
+
+
 def generar_datos_dashboard(numero_ficha: str) -> dict:
     """
     Lee el Excel de la ficha y devuelve un dict JSON-serializable
@@ -1841,6 +1854,7 @@ def generar_datos_dashboard(numero_ficha: str) -> dict:
         "regional":      _meta("Regional:"),
         "centro":        _meta("Centro de Formación:"),
         "fecha_reporte": _meta("Fecha del Reporte:"),
+        "hora_descarga": _hora_guardado_archivo(ruta_excel),
     }
 
     df = pd.read_excel(ruta_excel, header=12)
