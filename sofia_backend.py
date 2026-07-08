@@ -23,7 +23,7 @@ import threading
 import subprocess
 import base64
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, field
 from typing import Optional, List, Tuple
 
@@ -1805,12 +1805,21 @@ def buscar_excel_ficha(numero_ficha: str) -> Optional[str]:
 #  DASHBOARD
 # ══════════════════════════════════════════════════════════════════
 
+# Colombia no tiene horario de verano: el offset respecto a UTC es siempre
+# fijo (-5). Usamos esto en vez de datetime.fromtimestamp() "a secas" porque
+# ese método usa el huso horario configurado en el sistema operativo, y en
+# la VM el reloj suele estar en UTC en vez de en hora de Colombia — lo que
+# hacía que la hora mostrada saliera 5 horas adelantada.
+_TZ_COLOMBIA = timezone(timedelta(hours=-5))
+
+
 def _hora_guardado_archivo(ruta: str) -> str:
-    """Hora local en la que el archivo del reporte quedó guardado en disco
-    (ya sea porque el bot lo descargó o porque el usuario lo subió
-    manualmente), en formato 12h en español, ej. '10:32 a. m.'."""
+    """Hora local de Colombia en la que el archivo del reporte quedó
+    guardado en disco (ya sea porque el bot lo descargó o porque el
+    usuario lo subió manualmente), en formato 12h, ej. '10:32 a. m.'."""
     try:
-        dt = datetime.fromtimestamp(os.path.getmtime(ruta))
+        dt_utc = datetime.fromtimestamp(os.path.getmtime(ruta), tz=timezone.utc)
+        dt = dt_utc.astimezone(_TZ_COLOMBIA)
         hora12 = dt.strftime("%I:%M").lstrip("0") or "12:00"
         sufijo = "a. m." if dt.hour < 12 else "p. m."
         return f"{hora12} {sufijo}"
