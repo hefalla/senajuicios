@@ -11,8 +11,8 @@ function switchTab(idx) {
   document.querySelectorAll('.tab-content').forEach((t, i) =>
     t.classList.toggle('active', i === idx));
   const panelRight = document.querySelector('.panel-right');
-  if (panelRight) panelRight.style.display = idx === 3 ? 'none' : '';
-  if (idx !== 3) {
+  if (panelRight) panelRight.style.display = idx === 1 ? 'none' : '';
+  if (idx !== 1) {
     document.getElementById('dashboardPanel').style.display = 'none';
   }
 }
@@ -222,22 +222,6 @@ function iniciarConsultar() {
   _iniciar('/api/consultar', { numero_ficha: ficha, nombre, apellido, tipo, solo_activos: activos });
 }
 
-function iniciarCompleto() {
-  const usuario    = document.getElementById('f_usuario').value.trim();
-  const contrasena = document.getElementById('f_contrasena').value.trim();
-  const ficha      = document.getElementById('f_ficha').value.trim();
-  if (!usuario || !contrasena || !ficha) {
-    alert('Completa usuario, contraseña y número de ficha.'); return;
-  }
-  const nombre   = document.getElementById('f_nombre').value.trim();
-  const apellido = document.getElementById('f_apellido').value.trim();
-  const tipo     = document.querySelector('input[name="f_tipo"]:checked').value;
-  const activos  = document.getElementById('f_activos').checked;
-  if (!_prepararUI('Proceso completo · Ficha ' + ficha, [])) return;
-  _iniciar('/api/completo', { usuario, contrasena, numero_ficha: ficha,
-                               nombre, apellido, tipo, solo_activos: activos });
-}
-
 /* ── Inicialización ────────────────────────────────────────────── */
 let _carpetaSeleccionada = null;
 
@@ -426,6 +410,46 @@ async function cargarDashboard() {
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<span class="btn-icon">📊</span> Ver dashboard';
+  }
+}
+
+function seleccionarYSubirArchivo() {
+  const ficha = document.getElementById('db_ficha').value.trim();
+  if (!ficha) { alert('Ingresa el número de ficha antes de subir el archivo.'); return; }
+  document.getElementById('db_archivo').click();
+}
+
+async function subirYcargarDashboard() {
+  const ficha  = document.getElementById('db_ficha').value.trim();
+  const input  = document.getElementById('db_archivo');
+  const archivo = input.files[0];
+  const estado = document.getElementById('db_upload_status');
+
+  if (!ficha)   { alert('Ingresa el número de ficha.'); return; }
+  if (!archivo) { alert('Selecciona el archivo Excel del reporte para subir.'); return; }
+
+  const btn = document.getElementById('btn_dashboard_subir');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="btn-icon">⏳</span> Subiendo…';
+  if (estado) estado.textContent = archivo.name;
+
+  try {
+    const formData = new FormData();
+    formData.append('numero_ficha', ficha);
+    formData.append('archivo', archivo);
+
+    const rUp = await fetch('/api/dashboard/subir', { method: 'POST', body: formData });
+    const dUp = await rUp.json();
+    if (!rUp.ok) { alert(dUp.error || 'Error al subir el archivo.'); return; }
+
+    if (estado) estado.textContent = '✔ ' + archivo.name;
+    await cargarDashboard();
+  } catch(e) {
+    alert('Error de red: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="btn-icon">⬆</span> Subir y ver dashboard';
+    input.value = '';
   }
 }
 

@@ -526,6 +526,37 @@ def api_dashboard(numero_ficha: str):
     return jsonify(datos)
 
 
+@app.route("/api/dashboard/subir", methods=["POST"])
+def api_dashboard_subir():
+    """Permite subir manualmente el archivo Excel del reporte de una ficha
+    (por si el usuario ya lo tiene descargado y no quiere volver a
+    descargarlo desde Sofía Plus). El archivo se guarda con el nombre
+    esperado por buscar_excel_ficha() para que el resto del flujo del
+    dashboard funcione sin cambios."""
+    numero_ficha = request.form.get("numero_ficha", "").strip()
+    archivo = request.files.get("archivo")
+
+    if not numero_ficha:
+        return jsonify(error="Falta el número de ficha"), 400
+    if not archivo or not archivo.filename:
+        return jsonify(error="No se recibió ningún archivo"), 400
+
+    ext = os.path.splitext(archivo.filename)[1].lower()
+    if ext not in (".xls", ".xlsx"):
+        return jsonify(error="El archivo debe ser un Excel (.xls o .xlsx)"), 400
+
+    carpeta = bk._carpeta_ficha(numero_ficha)
+    destino = os.path.join(
+        carpeta, f"Reporte de Juicios Evaluativos - {numero_ficha}{ext}"
+    )
+    try:
+        archivo.save(destino)
+    except Exception as e:
+        return jsonify(error=f"No se pudo guardar el archivo: {e}"), 500
+
+    return jsonify(ok=True)
+
+
 @app.route("/api/consulta_ra/<numero_ficha>")
 def api_consulta_ra(numero_ficha: str):
     """Devuelve competencias y RAs con datos de evaluación para consulta interactiva."""

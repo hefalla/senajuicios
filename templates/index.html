@@ -39,16 +39,13 @@
 
     <div class="tab-nav">
       <button class="tab-btn active" onclick="switchTab(0)">
-        <span class="tab-icon">📥</span> Descargar Reporte
+        <span class="tab-icon">📥</span> Descargar Reporte de SofiaPlus
       </button>
       <button class="tab-btn" onclick="switchTab(1)">
-        <span class="tab-icon">📄</span> Generar Informe
+        <span class="tab-icon">📊</span> Dashboard Reporte
       </button>
       <button class="tab-btn" onclick="switchTab(2)">
-        <span class="tab-icon">⚡</span> Descargar y Generar
-      </button>
-      <button class="tab-btn" onclick="switchTab(3)">
-        <span class="tab-icon">📊</span> Dashboard Reporte
+        <span class="tab-icon">📄</span> Generar Informe
       </button>
     </div>
 
@@ -89,8 +86,41 @@
       </div>
     </div>
 
-    <!-- Tab 2: Consultar ---------------------------------------- -->
+    <!-- Tab 2: Dashboard ------------------------------------------ -->
     <div class="tab-content" id="tab1">
+      <div class="form-section">
+        <div class="section-label">Ficha</div>
+        <div class="field-row single">
+          <div class="field">
+            <label>Número de ficha</label>
+            <input type="text" id="db_ficha" placeholder="Ej: 2994282">
+          </div>
+        </div>
+      </div>
+      <div class="action-bar">
+        <span style="font-size:.78rem; color:var(--texto-suave);">Requiere reporte ya descargado</span>
+        <button class="btn-run" id="btn_dashboard" onclick="cargarDashboard()">
+          <span class="btn-icon">📊</span> Ver dashboard
+        </button>
+      </div>
+
+      <div class="hint" style="margin:.75rem 0 0;">— o, si lo prefieres —</div>
+
+      <div class="form-section">
+        <div class="section-label">Subir archivo del reporte</div>
+        <div class="hint">Si ya tienes el reporte descargado en tu equipo, súbelo aquí directamente sin necesidad de volver a descargarlo (.xls / .xlsx).</div>
+        <input type="file" id="db_archivo" accept=".xls,.xlsx" style="display:none" onchange="subirYcargarDashboard()">
+      </div>
+      <div class="action-bar">
+        <span style="font-size:.78rem; color:var(--texto-suave);" id="db_upload_status"></span>
+        <button class="btn-run" id="btn_dashboard_subir" onclick="seleccionarYSubirArchivo()">
+          <span class="btn-icon">⬆</span> Subir y ver dashboard
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab 3: Generar Informe -------------------------------------- -->
+    <div class="tab-content" id="tab2">
 
       <div class="form-section">
         <div class="section-label">Ficha</div>
@@ -140,89 +170,6 @@
         </span>
         <button class="btn-run" id="btn_consultar" onclick="iniciarConsultar()">
           <span class="btn-icon">📄</span> Generar informe
-        </button>
-      </div>
-    </div>
-
-    <!-- Tab 3: Completo ----------------------------------------- -->
-    <div class="tab-content" id="tab2">
-
-      <div class="form-section">
-        <div class="section-label">Credenciales Sofía Plus</div>
-        <div class="field-row">
-          <div class="field">
-            <label>Número de documento</label>
-            <input type="text" id="f_usuario" placeholder="Ej: 1234567890" autocomplete="username">
-          </div>
-          <div class="field">
-            <label>Contraseña</label>
-            <input type="password" id="f_contrasena" placeholder="••••••••" autocomplete="current-password">
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="section-label">Ficha y aprendiz</div>
-        <div class="field-row single">
-          <div class="field">
-            <label>Número de ficha</label>
-            <input type="text" id="f_ficha" placeholder="Ej: 2994282">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>Nombres (opcional)</label>
-            <input type="text" id="f_nombre" placeholder="Ej: Santiago">
-          </div>
-          <div class="field">
-            <label>Apellidos (opcional)</label>
-            <input type="text" id="f_apellido" placeholder="Ej: Gañan">
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="section-label">Tipo de informe</div>
-        <div class="radio-group">
-          <label><input type="radio" name="f_tipo" value="consolidado" checked> Consolidado</label>
-          <label><input type="radio" name="f_tipo" value="independiente"> Independiente</label>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="check-group">
-          <label>
-            <input type="checkbox" id="f_activos">
-            Solo aprendices activos
-          </label>
-        </div>
-      </div>
-
-      <div class="action-bar">
-        <span style="font-size:.78rem; color:var(--texto-suave);">
-          Descarga y genera el informe en un solo paso
-        </span>
-        <button class="btn-run" id="btn_completo" onclick="iniciarCompleto()">
-          <span class="btn-icon">⚡</span> Ejecutar proceso completo
-        </button>
-      </div>
-    </div>
-
-    <!-- Tab 4: Dashboard --------------------------------------- -->
-    <div class="tab-content" id="tab3">
-      <div class="form-section">
-        <div class="section-label">Ficha</div>
-        <div class="field-row single">
-          <div class="field">
-            <label>Número de ficha</label>
-            <input type="text" id="db_ficha" placeholder="Ej: 2994282">
-          </div>
-        </div>
-      </div>
-      <div class="action-bar">
-        <span style="font-size:.78rem; color:var(--texto-suave);">Requiere reporte ya descargado</span>
-        <button class="btn-run" id="btn_dashboard" onclick="cargarDashboard()">
-          <span class="btn-icon">📊</span> Ver dashboard
         </button>
       </div>
     </div>

@@ -139,7 +139,7 @@ main {
 /* ══════════════════════════════════════════════════════════════
    Form elements
    ══════════════════════════════════════════════════════════════ */
-.form-section { margin-bottom: 20px; }
+.form-section { margin-top: 7px; }
 .section-label {
   font-size: .72rem; font-weight: 600;
   text-transform: uppercase; letter-spacing: .06em;
@@ -210,8 +210,7 @@ input[type="radio"], input[type="checkbox"] {
    ══════════════════════════════════════════════════════════════ */
 .action-bar {
   display: flex; align-items: center; justify-content: space-between;
-  margin-top: 20px; padding-top: 16px;
-  border-top: 1px solid var(--borde);
+  padding-top: 10px;
   gap: 12px;
   flex-wrap: wrap;
 }
