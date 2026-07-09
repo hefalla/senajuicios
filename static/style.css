@@ -528,8 +528,16 @@ input[type="radio"], input[type="checkbox"] {
   gap: 10px;
   margin-bottom: 10px;
 }
-.db-card { background: var(--fondo-panel); border: 1px solid var(--borde); border-radius: var(--radio); padding: 1rem 1.25rem; margin-bottom: 10px; }
+.db-card { background: var(--fondo-panel); border: 1px solid var(--borde); border-radius: var(--radio); padding: 1rem 1.25rem; margin-bottom: 10px; min-width: 0; }
 .db-card-title { font-size: 13px; font-weight: 500; color: var(--texto); margin: 0 0 .75rem; }
+
+/* Los ítems de un contenedor grid/flex tienen min-width:auto por defecto,
+   lo que impide que encojan por debajo del ancho mínimo de su contenido
+   (típicamente el <canvas> de Chart.js). Forzamos min-width:0 en toda la
+   cadena para que puedan achicarse junto con el viewport. */
+.db-charts-row > .db-card,
+.db-charts-row { min-width: 0; }
+#dashboardPanel canvas { max-width: 100%; }
 
 .db-badge     { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 500; white-space: nowrap; }
 .db-badge-g   { background: #EAF3DE; color: #3B6D11; }
@@ -680,6 +688,7 @@ input[type="radio"], input[type="checkbox"] {
   .db-header-subtitulo { font-size: 10px; }
 
   .db-card { padding: .75rem; }
+  .db-inner-tabs-nav { margin: -.75rem -.75rem 1rem; padding: 0 .75rem; }
 
   .modal { border-radius: var(--radio-sm); }
   .modal-body { padding: 14px; }
