@@ -17,6 +17,8 @@ services:
       - "traefik.http.routers.juicios.entrypoints=web"
       - "traefik.http.services.juicios.loadbalancer.server.port=5000"
       - "traefik.docker.network=public"
+    networks:
+      - public
 
 volumes:
   senajuicios:
