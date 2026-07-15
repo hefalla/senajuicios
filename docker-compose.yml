@@ -4,8 +4,6 @@ services:
     image: sena-juicios:latest
     container_name: sena-juicios
     restart: unless-stopped
-    ports:
-      - "${PORT:-5000}:5000"
     environment:
       HOST: 0.0.0.0
       PORT: 5000
@@ -13,6 +11,17 @@ services:
     volumes:
       - senajuicios:/data/descargas
     shm_size: "1gb"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.juicios.rule=Host(`juicios.areasoftccyt.com`)"
+      - "traefik.http.routers.juicios.entrypoints=web"
+      - "traefik.http.services.juicios.loadbalancer.server.port=5000"
+      - "traefik.docker.network=public"
 
 volumes:
   senajuicios:
+
+networks:
+  public:
+    external: true
+    name: public
