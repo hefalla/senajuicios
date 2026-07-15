@@ -1,8 +1,8 @@
 services:
-  sofia-plus:
+  sena-juicios:
     build: .
-    image: sofia-plus:latest
-    container_name: sofia-plus
+    image: sena-juicios:latest
+    container_name: sena-juicios
     restart: unless-stopped
     ports:
       - "${PORT:-5000}:5000"
@@ -11,8 +11,8 @@ services:
       PORT: 5000
       SOFIA_CARPETA: /data/descargas
     volumes:
-      - sofia_descargas:/data/descargas
+      - senajuicios:/data/descargas
     shm_size: "1gb"
 
 volumes:
-  sofia_descargas:
+  senajuicios:
