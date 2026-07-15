@@ -1,0 +1,18 @@
+services:
+  sofia-plus:
+    build: .
+    image: sofia-plus:latest
+    container_name: sofia-plus
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5000}:5000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 5000
+      SOFIA_CARPETA: /data/descargas
+    volumes:
+      - sofia_descargas:/data/descargas
+    shm_size: "1gb"
+
+volumes:
+  sofia_descargas:
